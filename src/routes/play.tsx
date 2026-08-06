@@ -397,30 +397,6 @@ function Play() {
   );
 }
 
-/** Fighter portrait beside the played card, so the board reads character vs character. */
-function FaceOff({ character, side }: { character: Character; side: "left" | "right" }) {
-  return (
-    <div className="flex w-24 flex-col items-center gap-1">
-      <div
-        className="size-20 overflow-hidden rounded-xl border-2 bg-card/70 backdrop-blur-md"
-        style={{ borderColor: character.color }}
-      >
-        <img
-          loading="lazy"
-          decoding="async"
-          src={character.portrait}
-          alt={character.name}
-          className="size-full object-cover object-top"
-          style={{ transform: side === "right" ? "scaleX(-1)" : undefined }}
-        />
-      </div>
-      <p className="label-xs truncate" style={{ color: character.color }}>
-        {character.name}
-      </p>
-    </div>
-  );
-}
-
 /** The played card for one side of the centre versus board. */
 function BattleCard({
   card,
