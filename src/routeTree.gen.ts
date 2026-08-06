@@ -10,33 +10,259 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as CreateMatchRouteImport } from './routes/create-match'
+import { Route as HouseBossRouteImport } from './routes/house-boss'
+import { Route as JoinMatchRouteImport } from './routes/join-match'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as LoadoutRouteImport } from './routes/loadout'
+import { Route as LobbyRouteImport } from './routes/lobby'
+import { Route as MarketRouteImport } from './routes/market'
+import { Route as PlayRouteImport } from './routes/play'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SeasonPassRouteImport } from './routes/season-pass'
+import { Route as SelectFighterRouteImport } from './routes/select-fighter'
+import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known.farcaster[.]json'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as InviteMatchIdRouteImport } from './routes/invite.$matchId'
+import { Route as MatchMatchIdRouteImport } from './routes/match.$matchId'
+import { Route as ApiPublicWebhookNeynarRouteImport } from './routes/api/public/webhook/neynar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateMatchRoute = CreateMatchRouteImport.update({
+  id: '/create-match',
+  path: '/create-match',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HouseBossRoute = HouseBossRouteImport.update({
+  id: '/house-boss',
+  path: '/house-boss',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinMatchRoute = JoinMatchRouteImport.update({
+  id: '/join-match',
+  path: '/join-match',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoadoutRoute = LoadoutRouteImport.update({
+  id: '/loadout',
+  path: '/loadout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LobbyRoute = LobbyRouteImport.update({
+  id: '/lobby',
+  path: '/lobby',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketRoute = MarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayRoute = PlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeasonPassRoute = SeasonPassRouteImport.update({
+  id: '/season-pass',
+  path: '/season-pass',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelectFighterRoute = SelectFighterRouteImport.update({
+  id: '/select-fighter',
+  path: '/select-fighter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotwellKnownFarcasterDotjsonRoute =
+  DotwellKnownFarcasterDotjsonRouteImport.update({
+    id: '/.well-known/farcaster.json',
+    path: '/.well-known/farcaster.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteMatchIdRoute = InviteMatchIdRouteImport.update({
+  id: '/invite/$matchId',
+  path: '/invite/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchMatchIdRoute = MatchMatchIdRouteImport.update({
+  id: '/match/$matchId',
+  path: '/match/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebhookNeynarRoute = ApiPublicWebhookNeynarRouteImport.update({
+  id: '/api/public/webhook/neynar',
+  path: '/api/public/webhook/neynar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/create-match': typeof CreateMatchRoute
+  '/house-boss': typeof HouseBossRoute
+  '/join-match': typeof JoinMatchRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/loadout': typeof LoadoutRoute
+  '/lobby': typeof LobbyRoute
+  '/market': typeof MarketRoute
+  '/play': typeof PlayRoute
+  '/profile': typeof ProfileRoute
+  '/season-pass': typeof SeasonPassRoute
+  '/select-fighter': typeof SelectFighterRoute
+  '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/health': typeof ApiHealthRoute
+  '/invite/$matchId': typeof InviteMatchIdRoute
+  '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/create-match': typeof CreateMatchRoute
+  '/house-boss': typeof HouseBossRoute
+  '/join-match': typeof JoinMatchRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/loadout': typeof LoadoutRoute
+  '/lobby': typeof LobbyRoute
+  '/market': typeof MarketRoute
+  '/play': typeof PlayRoute
+  '/profile': typeof ProfileRoute
+  '/season-pass': typeof SeasonPassRoute
+  '/select-fighter': typeof SelectFighterRoute
+  '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/health': typeof ApiHealthRoute
+  '/invite/$matchId': typeof InviteMatchIdRoute
+  '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/create-match': typeof CreateMatchRoute
+  '/house-boss': typeof HouseBossRoute
+  '/join-match': typeof JoinMatchRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/loadout': typeof LoadoutRoute
+  '/lobby': typeof LobbyRoute
+  '/market': typeof MarketRoute
+  '/play': typeof PlayRoute
+  '/profile': typeof ProfileRoute
+  '/season-pass': typeof SeasonPassRoute
+  '/select-fighter': typeof SelectFighterRoute
+  '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/health': typeof ApiHealthRoute
+  '/invite/$matchId': typeof InviteMatchIdRoute
+  '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/create-match'
+    | '/house-boss'
+    | '/join-match'
+    | '/leaderboard'
+    | '/loadout'
+    | '/lobby'
+    | '/market'
+    | '/play'
+    | '/profile'
+    | '/season-pass'
+    | '/select-fighter'
+    | '/.well-known/farcaster.json'
+    | '/api/health'
+    | '/invite/$matchId'
+    | '/match/$matchId'
+    | '/api/public/webhook/neynar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/create-match'
+    | '/house-boss'
+    | '/join-match'
+    | '/leaderboard'
+    | '/loadout'
+    | '/lobby'
+    | '/market'
+    | '/play'
+    | '/profile'
+    | '/season-pass'
+    | '/select-fighter'
+    | '/.well-known/farcaster.json'
+    | '/api/health'
+    | '/invite/$matchId'
+    | '/match/$matchId'
+    | '/api/public/webhook/neynar'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/create-match'
+    | '/house-boss'
+    | '/join-match'
+    | '/leaderboard'
+    | '/loadout'
+    | '/lobby'
+    | '/market'
+    | '/play'
+    | '/profile'
+    | '/season-pass'
+    | '/select-fighter'
+    | '/.well-known/farcaster.json'
+    | '/api/health'
+    | '/invite/$matchId'
+    | '/match/$matchId'
+    | '/api/public/webhook/neynar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  CreateMatchRoute: typeof CreateMatchRoute
+  HouseBossRoute: typeof HouseBossRoute
+  JoinMatchRoute: typeof JoinMatchRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  LoadoutRoute: typeof LoadoutRoute
+  LobbyRoute: typeof LobbyRoute
+  MarketRoute: typeof MarketRoute
+  PlayRoute: typeof PlayRoute
+  ProfileRoute: typeof ProfileRoute
+  SeasonPassRoute: typeof SeasonPassRoute
+  SelectFighterRoute: typeof SelectFighterRoute
+  DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  InviteMatchIdRoute: typeof InviteMatchIdRoute
+  MatchMatchIdRoute: typeof MatchMatchIdRoute
+  ApiPublicWebhookNeynarRoute: typeof ApiPublicWebhookNeynarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +274,148 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create-match': {
+      id: '/create-match'
+      path: '/create-match'
+      fullPath: '/create-match'
+      preLoaderRoute: typeof CreateMatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/house-boss': {
+      id: '/house-boss'
+      path: '/house-boss'
+      fullPath: '/house-boss'
+      preLoaderRoute: typeof HouseBossRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join-match': {
+      id: '/join-match'
+      path: '/join-match'
+      fullPath: '/join-match'
+      preLoaderRoute: typeof JoinMatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loadout': {
+      id: '/loadout'
+      path: '/loadout'
+      fullPath: '/loadout'
+      preLoaderRoute: typeof LoadoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lobby': {
+      id: '/lobby'
+      path: '/lobby'
+      fullPath: '/lobby'
+      preLoaderRoute: typeof LobbyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/market': {
+      id: '/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof MarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play': {
+      id: '/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof PlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/season-pass': {
+      id: '/season-pass'
+      path: '/season-pass'
+      fullPath: '/season-pass'
+      preLoaderRoute: typeof SeasonPassRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/select-fighter': {
+      id: '/select-fighter'
+      path: '/select-fighter'
+      fullPath: '/select-fighter'
+      preLoaderRoute: typeof SelectFighterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/farcaster.json': {
+      id: '/.well-known/farcaster.json'
+      path: '/.well-known/farcaster.json'
+      fullPath: '/.well-known/farcaster.json'
+      preLoaderRoute: typeof DotwellKnownFarcasterDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$matchId': {
+      id: '/invite/$matchId'
+      path: '/invite/$matchId'
+      fullPath: '/invite/$matchId'
+      preLoaderRoute: typeof InviteMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/match/$matchId': {
+      id: '/match/$matchId'
+      path: '/match/$matchId'
+      fullPath: '/match/$matchId'
+      preLoaderRoute: typeof MatchMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhook/neynar': {
+      id: '/api/public/webhook/neynar'
+      path: '/api/public/webhook/neynar'
+      fullPath: '/api/public/webhook/neynar'
+      preLoaderRoute: typeof ApiPublicWebhookNeynarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  CreateMatchRoute: CreateMatchRoute,
+  HouseBossRoute: HouseBossRoute,
+  JoinMatchRoute: JoinMatchRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  LoadoutRoute: LoadoutRoute,
+  LobbyRoute: LobbyRoute,
+  MarketRoute: MarketRoute,
+  PlayRoute: PlayRoute,
+  ProfileRoute: ProfileRoute,
+  SeasonPassRoute: SeasonPassRoute,
+  SelectFighterRoute: SelectFighterRoute,
+  DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  InviteMatchIdRoute: InviteMatchIdRoute,
+  MatchMatchIdRoute: MatchMatchIdRoute,
+  ApiPublicWebhookNeynarRoute: ApiPublicWebhookNeynarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
