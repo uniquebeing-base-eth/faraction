@@ -475,9 +475,9 @@ function Combatant({
         decoding="async"
         src={character.fullArt}
         alt={character.name}
-        className="fa-art absolute bottom-16 h-[520px] object-contain object-bottom"
+        className="fa-art absolute bottom-16 h-[600px] object-contain object-bottom"
         style={{
-          [isLeft ? "left" : "right"]: "-40px",
+          [isLeft ? "left" : "right"]: "40px",
           transform: isLeft ? undefined : "scaleX(-1)",
         }}
       />
