@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Zap, Coins, ChevronLeft, Volume2, VolumeX } from "lucide-react";
+import { Zap, Coins, ChevronLeft, Volume2, VolumeX, CircleHelp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTokenBalances } from "@/lib/onchain/balances";
 import { FactsPriceChip } from "@/components/FactsPriceChip";
@@ -7,6 +7,7 @@ import { WalletButton } from "@/components/WalletButton";
 import { BuyFactsButton } from "@/components/BuyFactsButton";
 import { useFarcasterIdentity } from "@/lib/farcaster/identity";
 import { hydrateMute, isMuted, setMuted, sfx, subscribeMute } from "@/lib/sound";
+import { HowToPlayDialog } from "@/components/HowToPlayDialog";
 
 /**
  * Overlay HUD. Floats over the world rather than pushing content down.
@@ -14,6 +15,7 @@ import { hydrateMute, isMuted, setMuted, sfx, subscribeMute } from "@/lib/sound"
 export function TopBar({ title, back }: { title?: string; back?: string }) {
   const { facts, usdc, connected, isLoading } = useTokenBalances();
   const [muted, setLocalMuted] = useState(false);
+  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const { identity } = useFarcasterIdentity();
 
   useEffect(() => {
@@ -36,6 +38,17 @@ export function TopBar({ title, back }: { title?: string; back?: string }) {
         <Link to="/" className="font-display text-lg font-bold tracking-[0.2em]">
           FAR<span className="text-accent">ACTION</span>
         </Link>
+        <button
+          type="button"
+          onClick={() => {
+            sfx.tap();
+            setHowToPlayOpen(true);
+          }}
+          className="fa-chip hover:border-accent/70"
+        >
+          <CircleHelp className="size-3.5" />
+          How to play
+        </button>
         {title ? (
           <>
             <span className="h-4 w-px bg-border" />
@@ -82,6 +95,7 @@ export function TopBar({ title, back }: { title?: string; back?: string }) {
           </span>
         ) : null}
       </div>
+      <HowToPlayDialog open={howToPlayOpen} onClose={() => setHowToPlayOpen(false)} />
     </header>
   );
 }

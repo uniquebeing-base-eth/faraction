@@ -4,6 +4,7 @@ import { usePlayer, passIsActive, displayHandle } from "@/lib/game/store";
 import { useTokenBalances } from "@/lib/onchain/balances";
 
 import { DailyClaimCard } from "@/components/DailyClaimCard";
+import { NotificationOptIn } from "@/components/NotificationOptIn";
 import { CHARACTERS, BASE_FACTS } from "@/lib/game/gameData";
 
 export const Route = createFileRoute("/profile")({
@@ -57,6 +58,7 @@ function Profile() {
             </div>
           </div>
           <DailyClaimCard onClaimed={() => void wallet.refetch()} />
+          <NotificationOptIn />
         </div>
       }
     >

@@ -1,32 +1,33 @@
 // FarAction — card & fighter definitions.
 // Mechanics preserved from the original engine; content rebranded to Base.
+import { cdnAsset } from "@/lib/assets";
 import kairaAssetPointer from "@/assets/img/fighter-kaira-v2.webp.asset.json";
-const kairaAsset = kairaAssetPointer.url;
+const kairaAsset = cdnAsset(kairaAssetPointer.url);
 import kenjiAssetPointer from "@/assets/img/fighter-kenji-v2.webp.asset.json";
-const kenjiAsset = kenjiAssetPointer.url;
+const kenjiAsset = cdnAsset(kenjiAssetPointer.url);
 import rivenAssetPointer from "@/assets/img/fighter-riven-v2.webp.asset.json";
-const rivenAsset = rivenAssetPointer.url;
+const rivenAsset = cdnAsset(rivenAssetPointer.url);
 import zaneAssetPointer from "@/assets/img/fighter-zane-v2.webp.asset.json";
-const zaneAsset = zaneAssetPointer.url;
+const zaneAsset = cdnAsset(zaneAssetPointer.url);
 import elaraAssetPointer from "@/assets/img/fighter-elara-v2.webp.asset.json";
-const elaraAsset = elaraAssetPointer.url;
+const elaraAsset = cdnAsset(elaraAssetPointer.url);
 import cinderAssetPointer from "@/assets/img/fighter-cinder.png.asset.json";
-const cinderAsset = cinderAssetPointer.url;
+const cinderAsset = cdnAsset(cinderAssetPointer.url);
 import goblynAssetPointer from "@/assets/img/fighter-goblyn.png.asset.json";
-const goblynAsset = goblynAssetPointer.url;
+const goblynAsset = cdnAsset(goblynAssetPointer.url);
 import noxarAssetPointer from "@/assets/img/fighter-noxar.png.asset.json";
-const noxarAsset = noxarAssetPointer.url;
+const noxarAsset = cdnAsset(noxarAssetPointer.url);
 import azelAssetPointer from "@/assets/img/fighter-azel.png.asset.json";
-const azelAsset = azelAssetPointer.url;
+const azelAsset = cdnAsset(azelAssetPointer.url);
 import pipAssetPointer from "@/assets/img/fighter-pip.png.asset.json";
-const pipAsset = pipAssetPointer.url;
+const pipAsset = cdnAsset(pipAssetPointer.url);
 
 import strikeAssetPointer from "@/assets/img/card-strike.jpg.asset.json";
-const strikeAsset = strikeAssetPointer.url;
+const strikeAsset = cdnAsset(strikeAssetPointer.url);
 import defenseAssetPointer from "@/assets/img/card-defense.jpg.asset.json";
-const defenseAsset = defenseAssetPointer.url;
+const defenseAsset = cdnAsset(defenseAssetPointer.url);
 import controlAssetPointer from "@/assets/img/card-control.jpg.asset.json";
-const controlAsset = controlAssetPointer.url;
+const controlAsset = cdnAsset(controlAssetPointer.url);
 
 const kairaArt = kairaAsset;
 const kenjiArt = kenjiAsset;

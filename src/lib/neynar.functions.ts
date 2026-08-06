@@ -32,6 +32,14 @@ export const createChallenge = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { inviteUrl } = await import("./config");
     const url = inviteUrl(data.matchId);
+    const { sendMiniAppNotification } = await import("./notifications.server");
+    const notification = await sendMiniAppNotification({
+      fids: [data.toFid],
+      title: "You have a FarAction challenge",
+      body: `${data.fromHandle} invited you to a 1 vs 1 battle. Tap to enter the arena.`,
+      targetUrl: url,
+      notificationId: `challenge-${data.matchId}-${data.toFid}`,
+    });
     return {
       matchId: data.matchId,
       inviteUrl: url,
@@ -40,5 +48,6 @@ export const createChallenge = createServerFn({ method: "POST" })
         `@${data.toUsername} I'm challenging you to a FarAction 1 vs 1 (${data.matchId}). Accept the bout ⚔️`,
       )}&embeds[]=${encodeURIComponent(url)}`,
       sentAt: Date.now(),
+      notificationSent: notification.sent > 0,
     };
   });
