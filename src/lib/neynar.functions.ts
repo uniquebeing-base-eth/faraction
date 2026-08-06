@@ -13,6 +13,12 @@ const challengeSchema = z.object({
   toFid: z.number().int().positive(),
 });
 
+const notifyJoinSchema = z.object({
+  matchId: z.string().min(3).max(64),
+  joinerHandle: z.string().min(1).max(120),
+  hostFid: z.number().int().positive(),
+});
+
 /** Search Farcaster users (and existing FarAction players) by handle or name. */
 export const searchUsers = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => searchSchema.parse(d))
@@ -32,14 +38,17 @@ export const createChallenge = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { inviteUrl } = await import("./config");
     const url = inviteUrl(data.matchId);
+    
+    // Attempt to send a direct push notification via the Mini App SDK / Neynar
     const { sendMiniAppNotification } = await import("./notifications.server");
     const notification = await sendMiniAppNotification({
       fids: [data.toFid],
-      title: "You have a FarAction challenge",
-      body: `${data.fromHandle} invited you to a 1 vs 1 battle. Tap to enter the arena.`,
+      title: "New Challenge ⚔️",
+      body: `${data.fromHandle} challenged you to a 1 vs 1 FarAction battle.`,
       targetUrl: url,
       notificationId: `challenge-${data.matchId}-${data.toFid}`,
-    });
+    }).catch(() => ({ sent: 0 }));
+
     return {
       matchId: data.matchId,
       inviteUrl: url,
@@ -50,4 +59,23 @@ export const createChallenge = createServerFn({ method: "POST" })
       sentAt: Date.now(),
       notificationSent: notification.sent > 0,
     };
+  });
+
+/** Notify the host that someone has joined their match. */
+export const notifyHostOfJoin = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => notifyJoinSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { inviteUrl } = await import("./config");
+    const { sendMiniAppNotification } = await import("./notifications.server");
+    
+    // Point the host to the lobby for that match
+    const url = `${inviteUrl(data.matchId).replace("/invite/", "/match/")}`;
+    
+    return await sendMiniAppNotification({
+      fids: [data.hostFid],
+      title: "Opponent Joined! ⚔️",
+      body: `${data.joinerHandle} has joined your match ${data.matchId}. Get ready!`,
+      targetUrl: url,
+      notificationId: `join-${data.matchId}-${data.hostFid}`,
+    }).catch(() => ({ sent: 0 }));
   });

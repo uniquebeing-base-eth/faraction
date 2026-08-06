@@ -24,6 +24,7 @@ export interface MatchConfig {
   difficulty: 0 | 1 | 2;
   hostHandle: string;
   hostFighterId: string;
+  hostFid?: number;
   createdAt: number;
 }
 

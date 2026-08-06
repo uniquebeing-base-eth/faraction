@@ -10,6 +10,7 @@ import { usePlayer, passIsActive, displayHandle } from "@/lib/game/store";
 import { useTokenBalances } from "@/lib/onchain/balances";
 
 import { joinStakedMatch } from "@/lib/onchain/actions";
+import { notifyHostOfJoin } from "@/lib/neynar.functions";
 import { pushActivity } from "@/lib/activity";
 import { PROD_ORIGIN } from "@/lib/config";
 import {
@@ -110,6 +111,15 @@ function JoinMatch() {
       // The stake and fee moved onchain — refresh the wallet balances.
       void wallet.refetch();
 
+      if (match.hostFid) {
+        void notifyHostOfJoin({
+          data: {
+            matchId: match.id,
+            joinerHandle: displayHandle(player),
+            hostFid: match.hostFid,
+          },
+        });
+      }
       saveActiveMatch({
         ...match,
         role: "joiner",
