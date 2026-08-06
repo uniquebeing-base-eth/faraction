@@ -158,6 +158,7 @@ function CreateMatch() {
         difficulty,
         hostHandle: displayHandle(player),
         hostFighterId: player.fighterId || CHARACTERS[0]!.id,
+        ...(player.fid ? { hostFid: player.fid } : {}),
         createdAt: Date.now(),
       };
       saveActiveMatch({

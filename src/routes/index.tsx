@@ -17,7 +17,8 @@ import { randomFact, CHARACTERS } from "@/lib/game/gameData";
 import { GameWorld } from "@/components/GameWorld";
 import { TopBar } from "@/components/TopBar";
 import squadGenesisAssetPointer from "@/assets/img/squad-genesis.webp.asset.json";
-const squadGenesisAsset = squadGenesisAssetPointer.url;
+import { cdnAsset } from "@/lib/assets";
+const squadGenesisAsset = cdnAsset(squadGenesisAssetPointer.url);
 import { useSeason, formatFacts } from "@/lib/game/season";
 import { ActivityTicker } from "@/components/ActivityTicker";
 
