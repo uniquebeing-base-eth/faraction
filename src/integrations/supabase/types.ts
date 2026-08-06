@@ -1,0 +1,617 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.15"
+  }
+  public: {
+    Tables: {
+      daily_claims: {
+        Row: {
+          amount: number
+          campaign_ids: string | null
+          claim_day: string
+          created_at: string
+          id: string
+          tx_hash: string | null
+          wallet: string
+        }
+        Insert: {
+          amount?: number
+          campaign_ids?: string | null
+          claim_day?: string
+          created_at?: string
+          id?: string
+          tx_hash?: string | null
+          wallet: string
+        }
+        Update: {
+          amount?: number
+          campaign_ids?: string | null
+          claim_day?: string
+          created_at?: string
+          id?: string
+          tx_hash?: string | null
+          wallet?: string
+        }
+        Relationships: []
+      }
+      notification_tokens: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          fid: number
+          id: string
+          last_event: string | null
+          token: string
+          updated_at: string
+          url: string
+          username: string | null
+          wallet: string | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          fid: number
+          id?: string
+          last_event?: string | null
+          token: string
+          updated_at?: string
+          url: string
+          username?: string | null
+          wallet?: string | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          fid?: number
+          id?: string
+          last_event?: string | null
+          token?: string
+          updated_at?: string
+          url?: string
+          username?: string | null
+          wallet?: string | null
+        }
+        Relationships: []
+      }
+      onchain_events: {
+        Row: {
+          address: string
+          args: Json
+          block_number: number | null
+          contract: string
+          created_at: string
+          event_name: string
+          id: string
+          log_index: number
+          tx_hash: string
+          wallet: string | null
+        }
+        Insert: {
+          address: string
+          args?: Json
+          block_number?: number | null
+          contract: string
+          created_at?: string
+          event_name: string
+          id?: string
+          log_index?: number
+          tx_hash: string
+          wallet?: string | null
+        }
+        Update: {
+          address?: string
+          args?: Json
+          block_number?: number | null
+          contract?: string
+          created_at?: string
+          event_name?: string
+          id?: string
+          log_index?: number
+          tx_hash?: string
+          wallet?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          beneficiary: string
+          created_at: string
+          id: string
+          kind: string
+          payer: string
+          payment_ref: string
+          sku: string
+          status: string
+          token: string
+          tx_hash: string | null
+          updated_at: string
+          usd_value: number | null
+        }
+        Insert: {
+          amount: number
+          beneficiary: string
+          created_at?: string
+          id?: string
+          kind: string
+          payer: string
+          payment_ref: string
+          sku: string
+          status?: string
+          token?: string
+          tx_hash?: string | null
+          updated_at?: string
+          usd_value?: number | null
+        }
+        Update: {
+          amount?: number
+          beneficiary?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          payer?: string
+          payment_ref?: string
+          sku?: string
+          status?: string
+          token?: string
+          tx_hash?: string | null
+          updated_at?: string
+          usd_value?: number | null
+        }
+        Relationships: []
+      }
+      pending_rewards: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          label: string
+          source: string
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          wallet: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          label: string
+          source: string
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          wallet: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          label?: string
+          source?: string
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          wallet?: string
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          created_at: string
+          facts_earned: number
+          fid: number | null
+          fp: number
+          handle: string | null
+          id: string
+          losses: number
+          pass_expires_at: string | null
+          updated_at: string
+          wallet: string
+          wins: number
+        }
+        Insert: {
+          created_at?: string
+          facts_earned?: number
+          fid?: number | null
+          fp?: number
+          handle?: string | null
+          id?: string
+          losses?: number
+          pass_expires_at?: string | null
+          updated_at?: string
+          wallet: string
+          wins?: number
+        }
+        Update: {
+          created_at?: string
+          facts_earned?: number
+          fid?: number | null
+          fp?: number
+          handle?: string | null
+          id?: string
+          losses?: number
+          pass_expires_at?: string | null
+          updated_at?: string
+          wallet?: string
+          wins?: number
+        }
+        Relationships: []
+      }
+      reward_allocations: {
+        Row: {
+          amount: number
+          campaign_id: number
+          created_at: string
+          id: string
+          rank: number | null
+          tx_hash: string | null
+          wallet: string
+        }
+        Insert: {
+          amount: number
+          campaign_id: number
+          created_at?: string
+          id?: string
+          rank?: number | null
+          tx_hash?: string | null
+          wallet: string
+        }
+        Update: {
+          amount?: number
+          campaign_id?: number
+          created_at?: string
+          id?: string
+          rank?: number | null
+          tx_hash?: string | null
+          wallet?: string
+        }
+        Relationships: []
+      }
+      reward_claims: {
+        Row: {
+          amount: number
+          asset: string
+          campaign_id: number | null
+          created_at: string
+          id: string
+          source: string
+          status: string
+          tx_hash: string | null
+          wallet: string
+        }
+        Insert: {
+          amount?: number
+          asset?: string
+          campaign_id?: number | null
+          created_at?: string
+          id?: string
+          source: string
+          status?: string
+          tx_hash?: string | null
+          wallet: string
+        }
+        Update: {
+          amount?: number
+          asset?: string
+          campaign_id?: number | null
+          created_at?: string
+          id?: string
+          source?: string
+          status?: string
+          tx_hash?: string | null
+          wallet?: string
+        }
+        Relationships: []
+      }
+      staked_matches: {
+        Row: {
+          asset: string
+          create_tx: string | null
+          created_at: string
+          creator: string
+          id: string
+          join_tx: string | null
+          match_id: string
+          match_key: string
+          opponent: string | null
+          settle_tx: string | null
+          stake: number
+          status: string
+          updated_at: string
+          winner: string | null
+        }
+        Insert: {
+          asset?: string
+          create_tx?: string | null
+          created_at?: string
+          creator: string
+          id?: string
+          join_tx?: string | null
+          match_id: string
+          match_key: string
+          opponent?: string | null
+          settle_tx?: string | null
+          stake: number
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Update: {
+          asset?: string
+          create_tx?: string | null
+          created_at?: string
+          creator?: string
+          id?: string
+          join_tx?: string | null
+          match_id?: string
+          match_key?: string
+          opponent?: string | null
+          settle_tx?: string | null
+          stake?: number
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      activate_season_pass: {
+        Args: { p_days: number; p_wallet: string }
+        Returns: string
+      }
+      disable_notification_tokens: {
+        Args: { p_event: string; p_fid: number }
+        Returns: undefined
+      }
+      join_staked_match: {
+        Args: { p_match_id: string; p_tx_hash: string; p_wallet: string }
+        Returns: undefined
+      }
+      leaderboard_ranked: {
+        Args: { p_limit?: number }
+        Returns: {
+          fp: number
+          handle: string
+          losses: number
+          wallet: string
+          wins: number
+        }[]
+      }
+      list_daily_claims: {
+        Args: { p_wallet: string }
+        Returns: {
+          amount: number
+          claim_day: string
+          created_at: string
+          tx_hash: string
+        }[]
+      }
+      list_notification_fids: {
+        Args: never
+        Returns: {
+          fid: number
+        }[]
+      }
+      record_chain_event: {
+        Args: {
+          p_address: string
+          p_args: Json
+          p_block: number
+          p_contract: string
+          p_event_name: string
+          p_tx_hash: string
+          p_wallet: string
+        }
+        Returns: undefined
+      }
+      record_daily_claim: {
+        Args: {
+          p_amount: number
+          p_campaign_ids: string
+          p_tx_hash: string
+          p_wallet: string
+        }
+        Returns: undefined
+      }
+      record_payment_receipt: {
+        Args: {
+          p_amount: number
+          p_beneficiary: string
+          p_kind: string
+          p_payer: string
+          p_payment_ref: string
+          p_sku: string
+          p_token: string
+          p_tx_hash: string
+          p_usd_value: number
+        }
+        Returns: {
+          created_at: string
+          id: string
+        }[]
+      }
+      record_ranked_result: {
+        Args: {
+          p_fp: number
+          p_handle: string
+          p_wallet: string
+          p_won: boolean
+        }
+        Returns: number
+      }
+      record_reward_claim: {
+        Args: {
+          p_amount: number
+          p_asset: string
+          p_source: string
+          p_tx_hash: string
+          p_wallet: string
+        }
+        Returns: undefined
+      }
+      save_notification_token: {
+        Args: { p_event: string; p_fid: number; p_token: string; p_url: string }
+        Returns: undefined
+      }
+      upsert_staked_match: {
+        Args: {
+          p_asset: string
+          p_creator: string
+          p_match_id: string
+          p_match_key: string
+          p_stake: number
+          p_tx_hash: string
+        }
+        Returns: undefined
+      }
+      upsert_wallet_profile: {
+        Args: { p_handle?: string; p_wallet: string }
+        Returns: undefined
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
