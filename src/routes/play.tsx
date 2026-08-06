@@ -228,8 +228,7 @@ function Play() {
 
       {/* Centre stage — the card versus board, always visible */}
       <div className="pointer-events-none absolute inset-x-0 top-[32%] z-20 flex flex-col items-center gap-3 px-8">
-        <div className="flex items-center gap-4">
-          <FaceOff character={fighter} side="left" />
+        <div className="flex items-center gap-6">
           <BattleCard
             card={showCards ? playerCard : undefined}
             colour={fighter.color}
@@ -240,7 +239,6 @@ function Play() {
             <p className="label-xs mt-1">Slot {Math.max(revealed, 1)} / 5</p>
           </div>
           <BattleCard card={showCards ? oppCard : undefined} colour={opponent.color} side="right" />
-          <FaceOff character={opponent} side="right" />
         </div>
 
         {currentSlot ? (
