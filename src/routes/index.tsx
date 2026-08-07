@@ -183,7 +183,7 @@ function Landing() {
           <h1 className="mt-2 font-display text-[70px] leading-[0.9] font-bold tracking-tight">
             FAR<span className="text-accent">ACTION</span>
           </h1>
-          <p className="mt-3 max-w-[42ch] text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-3 max-w-[42ch] text-sm font-semibold leading-relaxed text-foreground/90">
             Onchain card fighting on Base. Lock a five-slot sequence, reveal it against the House AI
             or a rival, and stack FACTS toward the 100,000,000 $FACTS season reward pool.
           </p>
@@ -219,7 +219,7 @@ function Landing() {
               <span className="block font-display text-lg font-bold">
                 {season.rewardPool.toLocaleString()} $FACTS
               </span>
-              <span className="block text-[11px] text-muted-foreground">
+              <span className="block text-[11px] font-semibold text-muted-foreground/90">
                 Top 25 split the pool — #1 takes {formatFacts(20_000_000)} FACTS
               </span>
             </span>
