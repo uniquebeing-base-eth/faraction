@@ -28,6 +28,7 @@ import {
   type MatchRecord,
 } from "@/lib/game/match";
 import { sfx } from "@/lib/sound";
+import { addMiniApp } from "@/lib/miniapp";
 
 const searchSchema = z.object({
   m: z.string().optional(),
@@ -150,6 +151,7 @@ function JoinMatch() {
       if (!match) return;
       sfx.coin();
       void wallet.refetch();
+      void addMiniApp().catch(() => undefined);
       saveActiveMatch({
         ...configFromRecord(row as unknown as MatchRecord),
         role: "joiner",

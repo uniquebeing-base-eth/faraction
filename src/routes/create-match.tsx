@@ -42,6 +42,7 @@ import type { FarcasterUser } from "@/lib/neynar.server";
 import { useFactsPrice, formatFactsAmount } from "@/lib/facts-price";
 import { pushActivity } from "@/lib/activity";
 import { shareCast } from "@/lib/share";
+import { addMiniApp } from "@/lib/miniapp";
 import { sfx } from "@/lib/sound";
 
 export const Route = createFileRoute("/create-match")({
@@ -169,6 +170,9 @@ function CreateMatch() {
     },
     onSuccess: ({ id, invitedUsername }) => {
       sfx.coin();
+      // Creating a match is a real user gesture — the right moment to ask for
+      // the mini app + notification permission natively.
+      void addMiniApp().catch(() => undefined);
       // Fees and stakes leave the wallet onchain — re-read the live balances.
       void wallet.refetch();
 
