@@ -281,7 +281,7 @@ function Lobby() {
           />
         </div>
 
-        {match.mode === "1v1" ? (
+        {match.mode !== "house" ? (
           <div className="space-y-2">
             <p className="label-xs">Invite code</p>
             <div className="flex items-center gap-2">

@@ -571,7 +571,7 @@ export const CARDS: Card[] = [
     bgColor: "#450a0a",
     image: S,
     isPremium: true,
-    price: 37500,
+    price: 225000,
   },
   {
     id: "go_to_hell",
@@ -585,7 +585,7 @@ export const CARDS: Card[] = [
     bgColor: "#431407",
     image: S,
     isPremium: true,
-    price: 50000,
+    price: 300000,
   },
   {
     id: "headbutt",
@@ -599,7 +599,7 @@ export const CARDS: Card[] = [
     bgColor: "#701a75",
     image: S,
     isPremium: true,
-    price: 20000,
+    price: 120000,
   },
   {
     id: "darkness_repellent",
@@ -613,7 +613,7 @@ export const CARDS: Card[] = [
     bgColor: "#2e1065",
     image: D,
     isPremium: true,
-    price: 30000,
+    price: 180000,
   },
   {
     id: "no_drain",
@@ -627,7 +627,7 @@ export const CARDS: Card[] = [
     bgColor: "#052e16",
     image: C,
     isPremium: true,
-    price: 15000,
+    price: 90000,
   },
   {
     id: "bite",
@@ -641,7 +641,7 @@ export const CARDS: Card[] = [
     bgColor: "#451a03",
     image: S,
     isPremium: true,
-    price: 10000,
+    price: 60000,
   },
   {
     id: "cage",
@@ -655,7 +655,7 @@ export const CARDS: Card[] = [
     bgColor: "#4c0519",
     image: C,
     isPremium: true,
-    price: 24000,
+    price: 144000,
   },
   {
     id: "ethereal_form",
@@ -669,7 +669,7 @@ export const CARDS: Card[] = [
     bgColor: "#2e1065",
     image: D,
     isPremium: true,
-    price: 26000,
+    price: 156000,
   },
   {
     id: "fire",
@@ -683,7 +683,7 @@ export const CARDS: Card[] = [
     bgColor: "#431407",
     image: S,
     isPremium: true,
-    price: 31000,
+    price: 186000,
   },
   {
     id: "grab",
@@ -697,7 +697,7 @@ export const CARDS: Card[] = [
     bgColor: "#083344",
     image: C,
     isPremium: true,
-    price: 21000,
+    price: 126000,
   },
   {
     id: "gravity_well",
@@ -711,7 +711,7 @@ export const CARDS: Card[] = [
     bgColor: "#3b0764",
     image: C,
     isPremium: true,
-    price: 28000,
+    price: 168000,
   },
   {
     id: "halo_knee_jab",
@@ -725,7 +725,7 @@ export const CARDS: Card[] = [
     bgColor: "#451a03",
     image: S,
     isPremium: true,
-    price: 29500,
+    price: 177000,
   },
   {
     id: "halo_shield",
@@ -739,7 +739,7 @@ export const CARDS: Card[] = [
     bgColor: "#0c2340",
     image: D,
     isPremium: true,
-    price: 18000,
+    price: 108000,
   },
   {
     id: "jaw_breaker",
@@ -753,7 +753,7 @@ export const CARDS: Card[] = [
     bgColor: "#450a0a",
     image: S,
     isPremium: true,
-    price: 35000,
+    price: 210000,
   },
   {
     id: "lightning",
@@ -767,7 +767,7 @@ export const CARDS: Card[] = [
     bgColor: "#422006",
     image: S,
     isPremium: true,
-    price: 34000,
+    price: 204000,
   },
   {
     id: "shadow_bind",
@@ -781,7 +781,7 @@ export const CARDS: Card[] = [
     bgColor: "#2e1065",
     image: C,
     isPremium: true,
-    price: 27000,
+    price: 162000,
   },
   {
     id: "downslide",
@@ -795,7 +795,7 @@ export const CARDS: Card[] = [
     bgColor: "#052e16",
     image: D,
     isPremium: true,
-    price: 19500,
+    price: 117000,
   },
 ];
 
