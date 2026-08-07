@@ -627,7 +627,7 @@ export const CARDS: Card[] = [
     bgColor: "#052e16",
     image: C,
     isPremium: true,
-    price: 90000,
+    price: 130000,
   },
   {
     id: "bite",
@@ -641,7 +641,7 @@ export const CARDS: Card[] = [
     bgColor: "#451a03",
     image: S,
     isPremium: true,
-    price: 60000,
+    price: 110000,
   },
   {
     id: "cage",
