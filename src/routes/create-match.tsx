@@ -148,7 +148,7 @@ function CreateMatch() {
           hostWallet: wallet.address ?? null,
           hostFighterId: fighterId,
           invitedUsername: mode === "1v1" && opponent ? opponent.username : null,
-          invitedFid: mode === "1v1" && opponent ? opponent.fid : null,
+          invitedFid: mode === "1v1" && opponent && opponent.fid > 0 ? opponent.fid : null,
         },
       });
 
@@ -159,7 +159,7 @@ function CreateMatch() {
             matchId: id,
             fromHandle: displayHandle(player),
             toUsername: opponent.username,
-            toFid: opponent.fid,
+            toFid: opponent.fid > 0 ? opponent.fid : null,
           },
         });
         invitedUsername = opponent.username;

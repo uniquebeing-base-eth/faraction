@@ -39,11 +39,11 @@ export const createMatchRecord = createServerFn({ method: "POST" })
 
     if (data.mode === "ranked") {
       const { sendMiniAppNotification } = await import("./notifications.server");
-      const { inviteUrl } = await import("./config");
+      const { matchUrl } = await import("./config");
       await sendMiniAppNotification({
         title: "Ranked match open ⚔️",
         body: `${data.hostHandle} opened Ranked match ${data.matchId}. First to tap in fights.`,
-        targetUrl: inviteUrl(data.matchId).replace("/invite/", "/match/"),
+        targetUrl: matchUrl(data.matchId),
         notificationId: `ranked-open-${data.matchId}`,
       }).catch((e) => console.error("Ranked broadcast failed", e));
     }
@@ -59,12 +59,12 @@ export const joinMatchRecord = createServerFn({ method: "POST" })
 
     if (row.host_fid) {
       const { sendMiniAppNotification } = await import("./notifications.server");
-      const { inviteUrl } = await import("./config");
+      const { matchUrl } = await import("./config");
       await sendMiniAppNotification({
         fids: [row.host_fid],
         title: "Opponent joined ⚔️",
         body: `${data.handle} accepted ${row.match_id}. Head to the lobby and start the bout.`,
-        targetUrl: inviteUrl(row.match_id).replace("/invite/", "/match/"),
+        targetUrl: matchUrl(row.match_id),
         notificationId: `join-${row.match_id}`,
       }).catch((e) => console.error("Join notification failed", e));
     }
@@ -108,12 +108,12 @@ export const markMatchPaid = createServerFn({ method: "POST" })
       const fids = [row.host_fid, row.joiner_fid].filter((f): f is number => Boolean(f));
       if (fids.length) {
         const { sendMiniAppNotification } = await import("./notifications.server");
-        const { inviteUrl } = await import("./config");
+        const { matchUrl } = await import("./config");
         await sendMiniAppNotification({
           fids,
           title: "Battle starting 🔥",
           body: `${row.match_id} is fully staked. Lock your deck and fight.`,
-          targetUrl: inviteUrl(row.match_id).replace("/invite/", "/match/"),
+          targetUrl: matchUrl(row.match_id),
           notificationId: `start-${row.match_id}`,
         }).catch((e) => console.error("Match start notification failed", e));
       }
@@ -133,5 +133,26 @@ export const updateMatchStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { dbSetMatchStatus } = await import("./matches.server");
-    return await dbSetMatchStatus(data.matchId, data.status);
+    const row = await dbSetMatchStatus(data.matchId, data.status);
+
+    // Close the loop: both fighters hear about the result (and their rewards)
+    // even if they left the app mid-bout.
+    if (data.status === "complete" || data.status === "cancelled") {
+      const fids = [row.host_fid, row.joiner_fid].filter((f): f is number => Boolean(f));
+      if (fids.length) {
+        const { sendMiniAppNotification } = await import("./notifications.server");
+        const { matchUrl } = await import("./config");
+        const complete = data.status === "complete";
+        await sendMiniAppNotification({
+          fids,
+          title: complete ? "Bout settled 🏆" : "Match cancelled",
+          body: complete
+            ? `${row.match_id} is over. Open FarAction to see the result and claim rewards.`
+            : `${row.match_id} was cancelled. Any stake stays claimable in the arena.`,
+          targetUrl: matchUrl(row.match_id),
+          notificationId: `${data.status}-${row.match_id}`,
+        }).catch((e) => console.error("Match result notification failed", e));
+      }
+    }
+    return row;
   });

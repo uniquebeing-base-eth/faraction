@@ -121,14 +121,18 @@ export function decodeMatch(payload: string): MatchConfig | null {
 /**
  * Invite links always use the production domain — never localhost or a
  * preview origin — so a cast opened days later still resolves.
+ *
+ * The link carries only the short match code (FAR1234567): the match row is
+ * persisted before the invite is ever cast, so the code alone resolves the
+ * full bout. Embedding the encoded payload made casts unreadable.
  */
-export function inviteLink(m: MatchConfig): string {
-  return `${PROD_ORIGIN}/invite/${m.id}?m=${encodeMatch(m)}`;
+export function inviteLink(m: MatchConfig | string): string {
+  return `${PROD_ORIGIN}/invite/${typeof m === "string" ? m : m.id}`;
 }
 
 /** Canonical match permalink. */
-export function matchLink(m: MatchConfig): string {
-  return `${PROD_ORIGIN}/match/${m.id}?m=${encodeMatch(m)}`;
+export function matchLink(m: MatchConfig | string): string {
+  return `${PROD_ORIGIN}/match/${typeof m === "string" ? m : m.id}`;
 }
 
 export function castText(m: MatchConfig): string {

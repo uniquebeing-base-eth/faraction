@@ -10,7 +10,9 @@ const challengeSchema = z.object({
   matchId: z.string().min(3).max(64),
   fromHandle: z.string().min(1).max(120),
   toUsername: z.string().min(1).max(60),
-  toFid: z.number().int().positive(),
+  // A Farcaster user found without a fid (FarAction-only player) can still be
+  // challenged — they just get the cast instead of a push notification.
+  toFid: z.number().int().nonnegative().nullish(),
 });
 
 const notifyJoinSchema = z.object({
@@ -37,24 +39,36 @@ export const createChallenge = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => challengeSchema.parse(d))
   .handler(async ({ data }) => {
     const { inviteUrl } = await import("./config");
+    const { stripAt } = await import("./neynar.server");
+    // Short, readable invite: the match row already holds every detail.
     const url = inviteUrl(data.matchId);
-    
-    // Attempt to send a direct push notification via the Mini App SDK / Neynar
-    const { sendMiniAppNotification } = await import("./notifications.server");
-    const notification = await sendMiniAppNotification({
-      fids: [data.toFid],
-      title: "New Challenge ⚔️",
-      body: `${data.fromHandle} challenged you to a 1 vs 1 FarAction battle.`,
-      targetUrl: url,
-      notificationId: `challenge-${data.matchId}-${data.toFid}`,
-    }).catch(() => ({ sent: 0 }));
+    const to = stripAt(data.toUsername);
+    const text = `@${to} I'm challenging you to a FarAction 1 vs 1 (${data.matchId}). Accept the bout ⚔️`;
+
+    // Direct push through Neynar when we know who to ping.
+    const notification =
+      data.toFid && data.toFid > 0
+        ? await (async () => {
+            const { sendMiniAppNotification } = await import("./notifications.server");
+            return sendMiniAppNotification({
+              fids: [data.toFid as number],
+              title: "New challenge ⚔️",
+              body: `${data.fromHandle} challenged you to a 1 vs 1. Match ${data.matchId}.`,
+              targetUrl: url,
+              notificationId: `challenge-${data.matchId}-${data.toFid}`,
+            }).catch((e) => {
+              console.error("Challenge notification failed", e);
+              return { sent: 0 };
+            });
+          })()
+        : { sent: 0 };
 
     return {
       matchId: data.matchId,
       inviteUrl: url,
-      castText: `@${data.toUsername} I'm challenging you to a FarAction 1 vs 1 (${data.matchId}). Accept the bout ⚔️`,
-      composeUrl: `https://warpcast.com/~/compose?text=${encodeURIComponent(
-        `@${data.toUsername} I'm challenging you to a FarAction 1 vs 1 (${data.matchId}). Accept the bout ⚔️`,
+      castText: text,
+      composeUrl: `https://farcaster.xyz/~/compose?text=${encodeURIComponent(
+        text,
       )}&embeds[]=${encodeURIComponent(url)}`,
       sentAt: Date.now(),
       notificationSent: notification.sent > 0,
@@ -65,17 +79,17 @@ export const createChallenge = createServerFn({ method: "POST" })
 export const notifyHostOfJoin = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => notifyJoinSchema.parse(d))
   .handler(async ({ data }) => {
-    const { inviteUrl } = await import("./config");
+    const { matchUrl } = await import("./config");
     const { sendMiniAppNotification } = await import("./notifications.server");
-    
-    // Point the host to the lobby for that match
-    const url = `${inviteUrl(data.matchId).replace("/invite/", "/match/")}`;
-    
+
     return await sendMiniAppNotification({
       fids: [data.hostFid],
-      title: "Opponent Joined! ⚔️",
-      body: `${data.joinerHandle} has joined your match ${data.matchId}. Get ready!`,
-      targetUrl: url,
+      title: "Opponent joined ⚔️",
+      body: `${data.joinerHandle} has joined match ${data.matchId}. Get ready!`,
+      targetUrl: matchUrl(data.matchId),
       notificationId: `join-${data.matchId}-${data.hostFid}`,
-    }).catch(() => ({ sent: 0 }));
+    }).catch((e) => {
+      console.error("Join notification failed", e);
+      return { sent: 0 };
+    });
   });
