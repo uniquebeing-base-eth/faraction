@@ -89,7 +89,24 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
     overscroll-behavior: none;
+  }
+
+  small,
+  label,
+  p,
+  span,
+  li,
+  button,
+  input,
+  textarea,
+  select,
+  .text-xs,
+  .text-sm {
+    font-weight: 600;
   }
 
   h1,
