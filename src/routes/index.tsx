@@ -262,7 +262,7 @@ function Landing() {
 
         {/* Right — station rail */}
         <aside className="flex flex-col justify-center gap-2.5">
-          <p className="label-xs">Arena stations</p>
+          <p className="label-xs text-[11px]">Arena stations</p>
           {STATIONS.map(({ to, label, note, Icon, tint }) => (
             <Link
               key={to}
@@ -271,8 +271,8 @@ function Landing() {
             >
               <Icon className={`size-4 shrink-0 ${tint}`} />
               <span className="min-w-0">
-                <span className="block font-display text-sm font-bold">{label}</span>
-                <span className="block text-[11px] text-muted-foreground">{note}</span>
+                <span className="block font-display text-[15px] font-extrabold leading-tight">{label}</span>
+                <span className="mt-0.5 block text-[12px] font-semibold text-muted-foreground/90">{note}</span>
               </span>
               <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </Link>
@@ -286,10 +286,10 @@ function Landing() {
           >
             <Zap className="size-4 shrink-0 text-facts" />
             <span className="min-w-0">
-              <span className="block font-display text-sm font-bold text-facts">
+              <span className="block font-display text-[15px] font-extrabold leading-tight text-facts">
                 {pass ? "Pass Active" : "Season Pass"}
               </span>
-              <span className="block text-[11px] text-muted-foreground">
+              <span className="mt-0.5 block text-[12px] font-semibold text-muted-foreground/90">
                 {pass
                   ? "Ranked + leaderboard unlocked"
                   : "Required for Ranked & the 100M $FACTS pool"}
