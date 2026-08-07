@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Copy, Check, Share2, Swords, X, Crown, Users, Loader2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { Copy, Check, Share2, Swords, X, Crown, Loader2 } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Screen } from "@/components/Screen";
 import { CHARACTERS } from "@/lib/game/gameData";
 import { usePlayer, displayHandle } from "@/lib/game/store";
 import {
+  activeFromRecord,
   castText,
   ENTRY_FEE_USDC,
   clearActiveMatch,
@@ -16,7 +18,9 @@ import {
   potFor,
   saveActiveMatch,
   type ActiveMatch,
+  type MatchRecord,
 } from "@/lib/game/match";
+import { fetchMatch, listMyMatches, markMatchPaid, updateMatchStatus } from "@/lib/matches.functions";
 import { sfx } from "@/lib/sound";
 import { shareCast } from "@/lib/share";
 import { chargeEntryFee } from "@/lib/payment-flows";
@@ -42,7 +46,7 @@ export const Route = createFileRoute("/lobby")({
 
 function Lobby() {
   const navigate = useNavigate();
-  const { player, update } = usePlayer();
+  const { player } = usePlayer();
   const [match, setMatch] = useState<ActiveMatch | null>(null);
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
@@ -51,16 +55,66 @@ function Lobby() {
   const [feeError, setFeeError] = useState("");
   const wallet = useTokenBalances();
 
+  const resolve = useServerFn(fetchMatch);
+  const mine = useServerFn(listMyMatches);
+  const setPaid = useServerFn(markMatchPaid);
+  const setStatus = useServerFn(updateMatchStatus);
+
+  // Restore the bout: the local record first, otherwise whatever the backend
+  // still has open for this player, so closing the app never loses a match.
   useEffect(() => {
-    const m = loadActiveMatch();
-    if (!m) {
-      navigate({ to: "/create-match" });
+    let cancelled = false;
+    const local = loadActiveMatch();
+    if (local) {
+      setMatch(local);
+      setLink(inviteLink(local));
+      if (local.mode === "house") setOpponentIn(true);
       return;
     }
-    setMatch(m);
-    setLink(inviteLink(m));
-    if (m.mode === "house" || m.role === "joiner") setOpponentIn(true);
-  }, [navigate]);
+    void mine({ data: { handle: displayHandle(player) } })
+      .then((rows) => {
+        if (cancelled) return;
+        const row = (rows as unknown as MatchRecord[])[0];
+        if (!row) {
+          navigate({ to: "/create-match" });
+          return;
+        }
+        const role =
+          row.host_handle.toLowerCase() === displayHandle(player).toLowerCase() ? "host" : "joiner";
+        const restored = activeFromRecord(row, role);
+        saveActiveMatch(restored);
+        setMatch(restored);
+        setLink(inviteLink(restored));
+        if (restored.mode === "house" || row.joiner_handle) setOpponentIn(true);
+      })
+      .catch(() => navigate({ to: "/create-match" }));
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, mine, player]);
+
+  // Live seat state — the host sees the opponent arrive without refreshing.
+  const live = useQuery({
+    queryKey: ["match-state", match?.id],
+    enabled: Boolean(match?.id) && match?.mode !== "house",
+    refetchInterval: 6_000,
+    queryFn: () => resolve({ data: { matchId: match!.id } }),
+  });
+
+  const liveRow = live.data as unknown as MatchRecord | null | undefined;
+
+  useEffect(() => {
+    if (!liveRow || !match) return;
+    if (liveRow.joiner_handle) {
+      setOpponentIn(true);
+      if (match.joinerHandle !== liveRow.joiner_handle) {
+        const next: ActiveMatch = { ...match, joinerHandle: liveRow.joiner_handle };
+        saveActiveMatch(next);
+        setMatch(next);
+        sfx.bell();
+      }
+    }
+  }, [liveRow, match]);
 
   /**
    * Step 3 of the payment flow — both seats are filled and ready, so the
@@ -83,9 +137,9 @@ function Lobby() {
       void wallet.refetch();
       const current = loadActiveMatch();
       if (!current) return;
+      void setPaid({ data: { matchId: current.id, role: current.role } }).catch(() => undefined);
       const next: ActiveMatch = {
         ...current,
-        joinerHandle: current.joinerHandle ?? "challenger.base.eth",
         paid: true,
         entryReceiptId: receiptId,
       };
@@ -137,7 +191,7 @@ function Lobby() {
     sfx.tap();
     // Stakes are escrowed onchain, so tearing the match down here only clears
     // the local match record — refunds settle through the vault contract.
-
+    if (match) void setStatus({ data: { matchId: match.id, status: "cancelled" } }).catch(() => undefined);
     clearActiveMatch();
     navigate({ to: "/" });
   };
@@ -215,7 +269,11 @@ function Lobby() {
           <Seat name={match.hostHandle} role="Host" art={host.fullArt} colour={host.color} ready />
           <span className="font-display text-2xl font-bold text-muted-foreground">VS</span>
           <Seat
-            name={opponentIn ? (match.mode === "house" ? "The House" : "Challenger") : "Open seat"}
+            name={
+              match.mode === "house"
+                ? "The House"
+                : (match.joinerHandle ?? (opponentIn ? "Challenger" : "Open seat"))
+            }
             role={match.mode === "house" ? "House AI" : "Player 2"}
             art={match.mode === "house" ? CHARACTERS[3]!.fullArt : undefined}
             colour="var(--accent)"
@@ -260,16 +318,9 @@ function Lobby() {
               <li>3 · Both sides lock a five-slot sequence and the pot settles to the winner.</li>
             </ol>
             {!opponentIn ? (
-              <button
-                type="button"
-                onClick={() => {
-                  sfx.select();
-                  setOpponentIn(true);
-                }}
-                className="fa-chip"
-              >
-                <Users className="size-3.5" /> Mark opponent as joined
-              </button>
+              <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <Loader2 className="size-3 animate-spin" /> Waiting for your opponent to accept…
+              </p>
             ) : null}
           </div>
         ) : (

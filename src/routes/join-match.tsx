@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { LogIn, Link2, Swords, Loader2, Lock } from "lucide-react";
+import { LogIn, Link2, Swords, Loader2, Lock, Trophy, RefreshCw } from "lucide-react";
 import { z } from "zod";
 import { Screen } from "@/components/Screen";
 import { CHARACTERS } from "@/lib/game/gameData";
@@ -10,23 +10,28 @@ import { usePlayer, passIsActive, displayHandle } from "@/lib/game/store";
 import { useTokenBalances } from "@/lib/onchain/balances";
 
 import { joinStakedMatch } from "@/lib/onchain/actions";
-import { notifyHostOfJoin } from "@/lib/neynar.functions";
+import { fetchMatch, joinMatchRecord, listOpenRankedMatches } from "@/lib/matches.functions";
 import { pushActivity } from "@/lib/activity";
 import { PROD_ORIGIN } from "@/lib/config";
 import {
+  configFromRecord,
   decodeMatch,
   ENTRY_FEE_USDC,
+  isMatchCode,
+  normalizeMatchCode,
   requiresSeasonPass,
   formatAmount,
   modeLabel,
   potFor,
   saveActiveMatch,
   type MatchConfig,
+  type MatchRecord,
 } from "@/lib/game/match";
 import { sfx } from "@/lib/sound";
 
 const searchSchema = z.object({
   m: z.string().optional(),
+  code: z.string().optional(),
 });
 
 export const Route = createFileRoute("/join-match")({
@@ -50,78 +55,103 @@ export const Route = createFileRoute("/join-match")({
 
 /**
  * Accepts anything a host can paste: a full invite link, an invite link with
- * the payload in the hash, or the raw join code copied from the match maker.
+ * the payload in the hash, or the raw FAR match code.
  */
-function payloadFrom(input: string): string {
+function tokenFrom(input: string): { code: string | null; payload: string | null } {
   const trimmed = input.trim().replace(/\s+/g, "");
+  if (!trimmed) return { code: null, payload: null };
   try {
     const url = new URL(trimmed);
-    const fromQuery = url.searchParams.get("m");
-    if (fromQuery) return fromQuery;
-    const hash = new URLSearchParams(url.hash.replace(/^#/, "")).get("m");
-    if (hash) return hash;
-    return url.pathname.split("/").filter(Boolean).pop() ?? trimmed;
+    const last = url.pathname.split("/").filter(Boolean).pop() ?? "";
+    const payload = url.searchParams.get("m") ?? new URLSearchParams(url.hash.replace(/^#/, "")).get("m");
+    return { code: isMatchCode(last) ? normalizeMatchCode(last) : null, payload };
   } catch {
-    return trimmed;
+    if (isMatchCode(trimmed)) return { code: normalizeMatchCode(trimmed), payload: null };
+    return { code: null, payload: trimmed };
   }
 }
 
 function JoinMatch() {
-  const { m } = Route.useSearch();
+  const { m, code: codeParam } = Route.useSearch();
   const navigate = useNavigate();
-  const { player, update } = usePlayer();
+  const { player } = usePlayer();
   const wallet = useTokenBalances();
 
-  const [input, setInput] = useState(m ?? "");
+  const [input, setInput] = useState(codeParam ?? m ?? "");
   const [match, setMatch] = useState<MatchConfig | null>(null);
   const [error, setError] = useState("");
+  const [looking, setLooking] = useState(false);
+
+  const resolve = useServerFn(fetchMatch);
+  const joinRecord = useServerFn(joinMatchRecord);
+  const listRanked = useServerFn(listOpenRankedMatches);
+
+  const openRanked = useQuery({
+    queryKey: ["open-ranked-matches"],
+    queryFn: () => listRanked({ data: {} }),
+    refetchInterval: 15_000,
+  });
+
+  /** Codes always win: the database record is the source of truth. */
+  const lookupValue = useCallback(
+    async (value: string) => {
+      const { code, payload } = tokenFrom(value);
+      setLooking(true);
+      try {
+        if (code) {
+          const row = await resolve({ data: { matchId: code } });
+          if (row) {
+            setError("");
+            setMatch(configFromRecord(row as unknown as MatchRecord));
+            sfx.select();
+            return;
+          }
+        }
+        const decoded = payload ? decodeMatch(payload) : null;
+        if (decoded) {
+          setError("");
+          setMatch(decoded);
+          sfx.select();
+          return;
+        }
+        setMatch(null);
+        setError("No open match with that link or code. Ask your friend to send it again.");
+      } catch (e) {
+        setMatch(null);
+        setError(e instanceof Error ? e.message : "Could not look that match up.");
+      } finally {
+        setLooking(false);
+      }
+    },
+    [resolve],
+  );
 
   useEffect(() => {
-    if (!m) return;
-    const decoded = decodeMatch(payloadFrom(m));
-    if (decoded) {
-      setMatch(decoded);
-      sfx.bell();
-    } else {
-      setError("That invite link is not readable. Ask your friend to send it again.");
-    }
-  }, [m]);
-
-  const lookup = () => {
-    const decoded = decodeMatch(payloadFrom(input));
-    if (!decoded) {
-      setError("That invite link or code is not readable. Copy it again from the match maker.");
-      setMatch(null);
-      return;
-    }
-    setError("");
-    setMatch(decoded);
-    sfx.select();
-  };
+    const initial = codeParam ?? m;
+    if (initial) void lookupValue(initial);
+  }, [codeParam, m, lookupValue]);
 
   const joining = useMutation({
     mutationFn: async (cfg: MatchConfig) => {
       // Step 2 of the payment flow: match the stake onchain. The entry fee is
       // charged in the lobby once both players are ready.
       if (cfg.staked) await joinStakedMatch(cfg.id);
+      return await joinRecord({
+        data: {
+          matchId: cfg.id,
+          handle: displayHandle(player),
+          fid: player.fid,
+          wallet: wallet.address ?? null,
+          fighterId: player.fighterId || CHARACTERS[0]!.id,
+        },
+      });
     },
-    onSuccess: () => {
+    onSuccess: (row) => {
       if (!match) return;
       sfx.coin();
-      // The stake and fee moved onchain — refresh the wallet balances.
       void wallet.refetch();
-
-      if (match.hostFid) {
-        void notifyHostOfJoin({
-          data: {
-            matchId: match.id,
-            joinerHandle: displayHandle(player),
-            hostFid: match.hostFid,
-          },
-        });
-      }
       saveActiveMatch({
-        ...match,
+        ...configFromRecord(row as unknown as MatchRecord),
         role: "joiner",
         joinerHandle: displayHandle(player),
         joinerFighterId: player.fighterId,
@@ -152,13 +182,14 @@ function JoinMatch() {
     ? (CHARACTERS.find((c) => c.id === match.hostFighterId) ?? CHARACTERS[0]!)
     : null;
   const economics = match ? potFor(match) : null;
+  const ranked = (openRanked.data ?? []) as unknown as MatchRecord[];
 
   return (
     <Screen
       title="Join Match"
       eyebrow="Invite link"
       heading="Join a battle"
-      blurb="Someone opened a match and sent you the link. Match the stake and the pot locks — winner takes 90%."
+      blurb="Paste an invite code, open a link, or jump into any Ranked bout waiting for an opponent."
       aside={
         <div className="space-y-2">
           {match && economics ? (
@@ -185,11 +216,11 @@ function JoinMatch() {
           {error ? <p className="text-xs text-strike">{error}</p> : null}
           <button
             type="button"
-            onClick={match ? join : lookup}
-            disabled={joining.isPending}
+            onClick={match ? join : () => void lookupValue(input)}
+            disabled={joining.isPending || looking}
             className="fa-btn w-full disabled:opacity-50"
           >
-            {joining.isPending ? (
+            {joining.isPending || looking ? (
               <Loader2 className="size-4 animate-spin" />
             ) : match && requiresSeasonPass(match.mode) && !passIsActive(player) ? (
               <Lock className="size-4" />
@@ -207,17 +238,24 @@ function JoinMatch() {
         </div>
       }
     >
-      <div className="flex h-full flex-col gap-4">
+      <div className="fa-scroll flex h-full flex-col gap-4 overflow-y-auto pr-1">
         <div>
           <p className="label-xs">Invite link or code</p>
           <div className="mt-2 flex gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={`${PROD_ORIGIN}/invite/… or FA-XXXX-XX`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void lookupValue(input);
+              }}
+              placeholder={`${PROD_ORIGIN}/match/… or FAR1234567`}
               className="min-w-0 flex-1 rounded-lg border border-border/70 bg-card/50 px-3 py-2.5 text-xs outline-none focus:border-accent"
             />
-            <button type="button" onClick={lookup} className="fa-btn-ghost shrink-0">
+            <button
+              type="button"
+              onClick={() => void lookupValue(input)}
+              className="fa-btn-ghost shrink-0"
+            >
               <Link2 className="size-4" /> Check
             </button>
           </div>
@@ -237,11 +275,59 @@ function JoinMatch() {
               art={(CHARACTERS.find((c) => c.id === player.fighterId) ?? CHARACTERS[0]!).fullArt}
             />
           </div>
-        ) : (
-          <div className="grid flex-1 place-items-center rounded-lg border border-dashed border-border/70">
-            <p className="text-xs text-muted-foreground">No match loaded yet</p>
+        ) : null}
+
+        <div>
+          <div className="flex items-center justify-between">
+            <p className="label-xs">Open Ranked matches</p>
+            <button
+              type="button"
+              onClick={() => void openRanked.refetch()}
+              className="fa-chip"
+              aria-label="Refresh open matches"
+            >
+              <RefreshCw className={`size-3.5 ${openRanked.isFetching ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
           </div>
-        )}
+          {ranked.length ? (
+            <ul className="mt-2 space-y-1.5">
+              {ranked.map((row) => (
+                <li key={row.match_id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sfx.select();
+                      setInput(row.match_id);
+                      setError("");
+                      setMatch(configFromRecord(row));
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg border border-border/60 bg-card/40 p-2.5 text-left transition-colors hover:border-accent/70"
+                  >
+                    <Trophy className="size-4 shrink-0 text-facts" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-display text-xs font-bold">
+                        {row.host_handle}
+                      </span>
+                      <span className="label-xs">
+                        {row.match_id} ·{" "}
+                        {row.staked
+                          ? formatAmount(Number(row.stake), row.token === "USDC" ? "USDC" : "FACTS")
+                          : "Unstaked"}
+                      </span>
+                    </span>
+                    <Swords className="size-4 shrink-0 text-muted-foreground" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 rounded-lg border border-dashed border-border/70 p-4 text-center text-xs text-muted-foreground">
+              No Ranked bouts waiting right now. Open one from Create Match and everyone gets
+              notified.
+            </p>
+          )}
+        </div>
       </div>
     </Screen>
   );

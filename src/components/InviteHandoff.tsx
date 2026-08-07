@@ -20,11 +20,16 @@ export function InviteHandoff({
   const match = payload ? decodeMatch(payload) : null;
 
   useEffect(() => {
+    // The code is the durable handle on a match: the join screen resolves it
+    // against the database, and the encoded payload is only a fallback.
     const t = window.setTimeout(() => {
-      navigate({ to: "/join-match", search: payload ? { m: payload } : {} });
+      navigate({
+        to: "/join-match",
+        search: { code: matchId, ...(payload ? { m: payload } : {}) },
+      });
     }, 250);
     return () => window.clearTimeout(t);
-  }, [navigate, payload]);
+  }, [navigate, payload, matchId]);
 
   const pot = match ? potFor(match) : null;
 

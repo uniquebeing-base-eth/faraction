@@ -44,6 +44,81 @@ export type Database = {
         }
         Relationships: []
       }
+      matches: {
+        Row: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: number
+          host_fid?: number | null
+          host_fighter_id?: string
+          host_handle: string
+          host_paid?: boolean
+          host_wallet?: string | null
+          id?: string
+          invited_fid?: number | null
+          invited_username?: string | null
+          joiner_fid?: number | null
+          joiner_fighter_id?: string | null
+          joiner_handle?: string | null
+          joiner_paid?: boolean
+          joiner_wallet?: string | null
+          match_id: string
+          mode?: string
+          stake?: number
+          staked?: boolean
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: number
+          host_fid?: number | null
+          host_fighter_id?: string
+          host_handle?: string
+          host_paid?: boolean
+          host_wallet?: string | null
+          id?: string
+          invited_fid?: number | null
+          invited_username?: string | null
+          joiner_fid?: number | null
+          joiner_fighter_id?: string | null
+          joiner_handle?: string | null
+          joiner_paid?: boolean
+          joiner_wallet?: string | null
+          match_id?: string
+          mode?: string
+          stake?: number
+          staked?: boolean
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_tokens: {
         Row: {
           created_at: string
@@ -374,9 +449,127 @@ export type Database = {
         Args: { p_days: number; p_wallet: string }
         Returns: string
       }
+      create_match: {
+        Args: {
+          p_difficulty: number
+          p_host_fid: number
+          p_host_fighter_id: string
+          p_host_handle: string
+          p_host_wallet: string
+          p_invited_fid: number
+          p_invited_username: string
+          p_match_id: string
+          p_mode: string
+          p_stake: number
+          p_staked: boolean
+          p_token: string
+        }
+        Returns: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       disable_notification_tokens: {
         Args: { p_event: string; p_fid: number }
         Returns: undefined
+      }
+      get_match: {
+        Args: { p_match_id: string }
+        Returns: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      join_match: {
+        Args: {
+          p_fid: number
+          p_fighter_id: string
+          p_handle: string
+          p_match_id: string
+          p_wallet: string
+        }
+        Returns: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       join_staked_match: {
         Args: { p_match_id: string; p_tx_hash: string; p_wallet: string }
@@ -401,11 +594,77 @@ export type Database = {
           tx_hash: string
         }[]
       }
+      list_my_matches: {
+        Args: { p_handle: string }
+        Returns: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       list_notification_fids: {
         Args: never
         Returns: {
           fid: number
         }[]
+      }
+      list_open_ranked_matches: {
+        Args: { p_limit?: number }
+        Returns: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       record_chain_event: {
         Args: {
@@ -467,6 +726,72 @@ export type Database = {
       save_notification_token: {
         Args: { p_event: string; p_fid: number; p_token: string; p_url: string }
         Returns: undefined
+      }
+      set_match_paid: {
+        Args: { p_match_id: string; p_role: string }
+        Returns: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_match_status: {
+        Args: { p_match_id: string; p_status: string }
+        Returns: {
+          created_at: string
+          difficulty: number
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       upsert_staked_match: {
         Args: {

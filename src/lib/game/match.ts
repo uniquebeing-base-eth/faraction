@@ -178,3 +178,54 @@ export function modeLabel(mode: MatchMode): string {
 export function formatAmount(n: number, token: StakeToken): string {
   return token === "USDC" ? `${n.toFixed(2)} USDC` : `${n.toLocaleString()} FACTS`;
 }
+
+/* -------------------------------------------------------- database records */
+
+/** Shape of a persisted match row, kept client-safe. */
+export interface MatchRecord {
+  match_id: string;
+  mode: string;
+  staked: boolean;
+  token: string;
+  stake: number | string;
+  difficulty: number;
+  host_handle: string;
+  host_fid: number | null;
+  host_fighter_id: string;
+  joiner_handle: string | null;
+  joiner_fid: number | null;
+  joiner_fighter_id: string | null;
+  invited_username: string | null;
+  status: string;
+  host_paid: boolean;
+  joiner_paid: boolean;
+  created_at: string;
+}
+
+/** Turn a persisted row back into the match config the screens work with. */
+export function configFromRecord(row: MatchRecord): MatchConfig {
+  return {
+    id: row.match_id,
+    mode: (["ranked", "house", "1v1"].includes(row.mode) ? row.mode : "1v1") as MatchMode,
+    staked: row.staked,
+    token: (row.token === "USDC" ? "USDC" : "FACTS") as StakeToken,
+    stake: Number(row.stake ?? 0),
+    difficulty: (Math.min(Math.max(row.difficulty ?? 1, 0), 2) as 0 | 1 | 2),
+    hostHandle: row.host_handle,
+    hostFighterId: row.host_fighter_id,
+    ...(row.host_fid ? { hostFid: row.host_fid } : {}),
+    createdAt: new Date(row.created_at).getTime(),
+  };
+}
+
+/** Restore the local active-match record from a persisted row. */
+export function activeFromRecord(row: MatchRecord, role: MatchRole): ActiveMatch {
+  return {
+    ...configFromRecord(row),
+    role,
+    ...(row.joiner_handle ? { joinerHandle: row.joiner_handle } : {}),
+    ...(row.joiner_fighter_id ? { joinerFighterId: row.joiner_fighter_id } : {}),
+    ...(row.invited_username ? { invitedUsername: row.invited_username } : {}),
+    paid: role === "host" ? row.host_paid : row.joiner_paid,
+  };
+}
