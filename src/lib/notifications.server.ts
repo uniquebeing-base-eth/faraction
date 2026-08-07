@@ -62,6 +62,22 @@ interface SendResult {
 /** Neynar accepts at most 100 target fids per call. */
 const MAX_FIDS_PER_CALL = 100;
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Neynar requires the idempotency key to be a real UUID, so a readable id like
+ * `join-FAR1234567` is hashed into a stable one instead of being sent raw
+ * (which the API rejects outright).
+ */
+async function stableUuid(seed: string): Promise<string> {
+  if (UUID_RE.test(seed)) return seed;
+  const digest = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(seed)),
+  );
+  const hex = Array.from(digest.slice(0, 16), (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
 /**
  * Send a notification to specific fids, or broadcast to everyone who enabled
  * notifications.
@@ -109,7 +125,10 @@ export async function sendMiniAppNotification(input: {
 
   for (const chunk of chunks) {
     // Fresh uuid per call: reusing one suppresses the send as a duplicate.
-    const uuid = chunks.length === 1 && input.notificationId ? input.notificationId : crypto.randomUUID();
+    const uuid =
+      chunks.length === 1 && input.notificationId
+        ? await stableUuid(input.notificationId)
+        : crypto.randomUUID();
     const res = await fetch(`${NEYNAR_BASE}/frame/notifications/`, {
       method: "POST",
       headers: {

@@ -36,10 +36,13 @@ import {
 } from "@/lib/game/match";
 import { createStakedMatch } from "@/lib/onchain/actions";
 import { createChallenge } from "@/lib/neynar.functions";
+import { createMatchRecord } from "@/lib/matches.functions";
 import { FarcasterSearch } from "@/components/FarcasterSearch";
 import type { FarcasterUser } from "@/lib/neynar.server";
 import { useFactsPrice, formatFactsAmount } from "@/lib/facts-price";
 import { pushActivity } from "@/lib/activity";
+import { shareCast } from "@/lib/share";
+import { addMiniApp } from "@/lib/miniapp";
 import { sfx } from "@/lib/sound";
 
 export const Route = createFileRoute("/create-match")({
@@ -111,6 +114,7 @@ function CreateMatch() {
   const [copied, setCopied] = useState<"link" | "code" | null>(null);
 
   const challenge = useServerFn(createChallenge);
+  const persist = useServerFn(createMatchRecord);
 
   const pass = passIsActive(player);
   const passLocked = requiresSeasonPass(mode) && !pass;
@@ -121,12 +125,32 @@ function CreateMatch() {
   const create = useMutation({
     mutationFn: async () => {
       const id = newMatchId();
+      const fighterId = player.fighterId || CHARACTERS[0]!.id;
       // Step 1 of the payment flow: the creator only locks the stake here.
       // The 0.01 USDC entry fee is charged later, in the lobby, once both
       // sides are confirmed and ready.
       if (staked) {
         await createStakedMatch({ matchKey: id, asset: token, stake });
       }
+
+      // Persist first: the invite code has to resolve for the opponent even if
+      // the host closes the app straight after casting the challenge.
+      await persist({
+        data: {
+          matchId: id,
+          mode,
+          staked,
+          token,
+          stake: staked ? stake : 0,
+          difficulty,
+          hostHandle: displayHandle(player),
+          hostFid: player.fid,
+          hostWallet: wallet.address ?? null,
+          hostFighterId: fighterId,
+          invitedUsername: mode === "1v1" && opponent ? opponent.username : null,
+          invitedFid: mode === "1v1" && opponent ? opponent.fid : null,
+        },
+      });
 
       let invitedUsername: string | undefined;
       if (mode === "1v1" && opponent) {
@@ -140,12 +164,15 @@ function CreateMatch() {
         });
         invitedUsername = opponent.username;
         // Cast the challenge while waiting for the player to accept.
-        window.open(sent.composeUrl, "_blank", "noopener,noreferrer");
+        void shareCast(sent.castText, sent.inviteUrl);
       }
       return { id, invitedUsername };
     },
     onSuccess: ({ id, invitedUsername }) => {
       sfx.coin();
+      // Creating a match is a real user gesture — the right moment to ask for
+      // the mini app + notification permission natively.
+      void addMiniApp().catch(() => undefined);
       // Fees and stakes leave the wallet onchain — re-read the live balances.
       void wallet.refetch();
 
