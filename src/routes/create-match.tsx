@@ -416,8 +416,10 @@ function CreateMatch() {
               ? "Season Pass required"
               : create.isPending
                 ? "Confirming payment…"
-                : mode === "1v1" && opponent
-                  ? `Challenge ${normalizeHandle(opponent.username)}`
+                : mode === "1v1"
+                  ? opponent
+                    ? `Challenge ${normalizeHandle(opponent.username)}`
+                    : "Open 1 vs 1 match"
                   : staked
                     ? `Lock ${formatAmount(stake, token)} & create`
                     : "Pay entry fee & create"}
@@ -481,8 +483,8 @@ function CreateMatch() {
           <div>
             <p className="label-xs">Challenge a player</p>
             <p className="mt-1 mb-2 text-[11px] text-muted-foreground">
-              Search Farcaster or existing FarAction players, pick your opponent, and we&apos;ll
-              cast the challenge while you wait for them to accept.
+              Search Farcaster or existing FarAction players, pick your opponent to challenge them,
+              or leave this blank to open a 1 vs 1 match in the lobby.
             </p>
             <FarcasterSearch selected={opponent} onSelect={setOpponent} />
           </div>
