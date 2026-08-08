@@ -16,7 +16,10 @@ interface MiniAppSdk {
   isInMiniApp?: () => Promise<boolean>;
   actions: {
     ready: () => Promise<void>;
-    composeCast?: (args: { text: string; embeds?: [] | [string] }) => Promise<unknown>;
+    composeCast?: (args: {
+      text: string;
+      embeds?: [] | [string] | [string, string];
+    }) => Promise<unknown>;
     swapToken?: (args: {
       buyToken: string;
       sellToken?: string;

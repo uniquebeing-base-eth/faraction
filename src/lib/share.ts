@@ -17,7 +17,7 @@ export async function shareCast(
   const compose = sdk?.actions?.composeCast;
   if (compose && (await isInMiniApp())) {
     try {
-      await compose({ text, embeds: embeds as [] | [string] });
+      await compose({ text, embeds: embeds as [] | [string] | [string, string] });
       return;
     } catch {
       /* fall through to the web composer */
