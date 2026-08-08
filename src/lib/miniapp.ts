@@ -13,6 +13,7 @@ interface MiniAppSdk {
     client?: { added?: boolean; notificationDetails?: { token: string; url: string } };
     user?: { fid?: number };
   }>;
+  isInMiniApp?: () => Promise<boolean>;
   actions: {
     ready: () => Promise<void>;
     composeCast?: (args: { text: string; embeds?: [] | [string] }) => Promise<unknown>;
@@ -46,6 +47,7 @@ export async function isInMiniApp(): Promise<boolean> {
   const sdk = await loadSdk();
   if (!sdk) return false;
   try {
+    if (sdk.isInMiniApp) return await sdk.isInMiniApp();
     const ctx = await sdk.context;
     return Boolean(ctx);
   } catch {
@@ -91,10 +93,29 @@ export async function swapToken(args: {
 
 let cachedAdded: boolean | null = null;
 
+const REJECTED_KEY = "faraction:miniapp:add-rejected";
+
+function addRejected(): boolean {
+  try {
+    return window.localStorage.getItem(REJECTED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function rememberRejection() {
+  try {
+    window.localStorage.setItem(REJECTED_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Prompt the native "add mini app" sheet, skipping users who already added it. */
 export async function addMiniApp(): Promise<boolean> {
   const sdk = await loadSdk();
   if (!sdk) return false;
+  if (cachedAdded) return true;
   
   // Re-check the context in case it changed since the last call.
   try {
@@ -114,8 +135,21 @@ export async function addMiniApp(): Promise<boolean> {
     cachedAdded = true;
     return true;
   } catch {
+    // The user declined — remember it so we never nag them again.
+    rememberRejection();
     return false;
   }
+}
+
+/**
+ * Prompt only when the user has not already added the app and has not
+ * previously rejected the sheet.
+ */
+export async function promptAddMiniApp(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  if (addRejected()) return false;
+  if (!(await isInMiniApp())) return false;
+  return addMiniApp();
 }
 
 /** Returns true if the app is already added and notifications are enabled. */

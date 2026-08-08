@@ -5,13 +5,17 @@
  * SDK (`composeCast`); everywhere else we fall back to the web composer, so a
  * share always works.
  */
-import { loadSdk } from "@/lib/miniapp";
+import { loadSdk, isInMiniApp } from "@/lib/miniapp";
 
-export async function shareCast(text: string, embedUrl?: string): Promise<void> {
-  const embeds = embedUrl ? [embedUrl] : [];
+export async function shareCast(
+  text: string,
+  embedUrl?: string,
+  imageUrl?: string,
+): Promise<void> {
+  const embeds = [embedUrl, imageUrl].filter((v): v is string => Boolean(v)).slice(0, 2);
   const sdk = await loadSdk();
   const compose = sdk?.actions?.composeCast;
-  if (compose) {
+  if (compose && (await isInMiniApp())) {
     try {
       await compose({ text, embeds: embeds as [] | [string] });
       return;
