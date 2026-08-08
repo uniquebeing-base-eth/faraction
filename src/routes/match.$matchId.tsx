@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { InviteHandoff } from "@/components/InviteHandoff";
 import { PROD_ORIGIN } from "@/lib/config";
+import { frameMeta } from "@/lib/frame-meta";
 
 const searchSchema = z.object({ m: z.string().optional() });
 
@@ -26,7 +27,13 @@ export const Route = createFileRoute("/match/$matchId")({
       { property: "og:image", content: `${PROD_ORIGIN}/preview.png` },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: `${PROD_ORIGIN}/preview.png` },
+      ...frameMeta({
+        url: `${PROD_ORIGIN}/match/${params.matchId}`,
+        title: "Enter the bout",
+        imageUrl: `${PROD_ORIGIN}/image.jpg`,
+      }),
     ],
+    links: [{ rel: "canonical", href: `/match/${params.matchId}` }],
   }),
   component: MatchRoute,
 });
