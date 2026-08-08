@@ -312,7 +312,7 @@ function CreateMatch() {
               type="button"
               onClick={() => {
                 sfx.tap();
-                const to = opponent ? `@${normalizeHandle(opponent.username)} ` : "";
+                const to = opponent ? `${normalizeHandle(opponent.username)} ` : "";
                 void shareCast(
                   `${to}FarAction ${modeLabel(mode)} open — code ${created.id}. Tap in and take me on ⚔️`,
                   created.link,
