@@ -42,7 +42,7 @@ import { FarcasterSearch } from "@/components/FarcasterSearch";
 import type { FarcasterUser } from "@/lib/neynar.server";
 import { useFactsPrice, formatFactsAmount } from "@/lib/facts-price";
 import { pushActivity } from "@/lib/activity";
-import { shareCast } from "@/lib/share";
+import { battleShareImage, shareCast } from "@/lib/share";
 import { promptAddMiniApp } from "@/lib/miniapp";
 import { sfx } from "@/lib/sound";
 
@@ -190,7 +190,15 @@ function CreateMatch() {
         });
         invitedUsername = opponent.username;
         // Cast the challenge while waiting for the player to accept.
-        void shareCast(sent.castText, sent.inviteUrl);
+        const preview = battleShareImage({
+          kind: "challenge",
+          matchId: id,
+          hostHandle: displayHandle(player),
+          ...(opponent ? { opponentHandle: opponent.username } : {}),
+          mode: modeLabel(mode),
+          season: "Genesis: The Awakening",
+        });
+        void shareCast(sent.castText, sent.inviteUrl, preview);
       }
       return { id, invitedUsername };
     },
@@ -313,9 +321,18 @@ function CreateMatch() {
               onClick={() => {
                 sfx.tap();
                 const to = opponent ? `${normalizeHandle(opponent.username)} ` : "";
+                const preview = battleShareImage({
+                  kind: "challenge",
+                  matchId: created.id,
+                  hostHandle: displayHandle(player),
+                  ...(opponent ? { opponentHandle: opponent.username } : to.trim() ? { opponentHandle: to.trim() } : {}),
+                  mode: modeLabel(mode),
+                  season: "Genesis: The Awakening",
+                });
                 void shareCast(
                   `${to}FarAction ${modeLabel(mode)} open — code ${created.id}. Tap in and take me on ⚔️`,
                   created.link,
+                  preview,
                 );
               }}
               className="fa-btn-ghost w-full"

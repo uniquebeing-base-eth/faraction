@@ -22,7 +22,7 @@ import {
 } from "@/lib/game/match";
 import { fetchMatch, listMyMatches, markMatchPaid, updateMatchStatus } from "@/lib/matches.functions";
 import { sfx } from "@/lib/sound";
-import { shareCast } from "@/lib/share";
+import { battleShareImage, shareCast } from "@/lib/share";
 import { chargeEntryFee } from "@/lib/payment-flows";
 import { useTokenBalances } from "@/lib/onchain/balances";
 
@@ -178,7 +178,15 @@ function Lobby() {
     const text = invited
       ? `@${invited} ${castText(match)}`
       : castText(match);
-    void shareCast(text, link);
+    const preview = battleShareImage({
+      kind: "challenge",
+      matchId: match.id,
+      hostHandle: match.hostHandle,
+      opponentHandle: match.joinerHandle ?? invited ?? match.invitedUsername ?? match.hostHandle,
+      mode: modeLabel(match.mode),
+      season: "Genesis: The Awakening",
+    });
+    void shareCast(text, link, preview);
   };
 
   const copyCode = async () => {

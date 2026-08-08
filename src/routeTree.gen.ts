@@ -26,6 +26,7 @@ import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]we
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as InviteMatchIdRouteImport } from './routes/invite.$matchId'
 import { Route as MatchMatchIdRouteImport } from './routes/match.$matchId'
+import { Route as ApiShareOgRouteImport } from './routes/api/share/og'
 import { Route as ApiPublicWebhookNeynarRouteImport } from './routes/api/public/webhook/neynar'
 
 const IndexRoute = IndexRouteImport.update({
@@ -114,6 +115,11 @@ const MatchMatchIdRoute = MatchMatchIdRouteImport.update({
   path: '/match/$matchId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShareOgRoute = ApiShareOgRouteImport.update({
+  id: '/api/share/og',
+  path: '/api/share/og',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhookNeynarRoute = ApiPublicWebhookNeynarRouteImport.update({
   id: '/api/public/webhook/neynar',
   path: '/api/public/webhook/neynar',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/invite/$matchId': typeof InviteMatchIdRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/share/og': typeof ApiShareOgRoute
   '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
 export interface FileRoutesByTo {
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRoute
   '/invite/$matchId': typeof InviteMatchIdRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/share/og': typeof ApiShareOgRoute
   '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
 export interface FileRoutesById {
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/invite/$matchId': typeof InviteMatchIdRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/share/og': typeof ApiShareOgRoute
   '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
 export interface FileRouteTypes {
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/invite/$matchId'
     | '/match/$matchId'
+    | '/api/share/og'
     | '/api/public/webhook/neynar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/invite/$matchId'
     | '/match/$matchId'
+    | '/api/share/og'
     | '/api/public/webhook/neynar'
   id:
     | '__root__'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/invite/$matchId'
     | '/match/$matchId'
+    | '/api/share/og'
     | '/api/public/webhook/neynar'
   fileRoutesById: FileRoutesById
 }
@@ -262,6 +274,7 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   InviteMatchIdRoute: typeof InviteMatchIdRoute
   MatchMatchIdRoute: typeof MatchMatchIdRoute
+  ApiShareOgRoute: typeof ApiShareOgRoute
   ApiPublicWebhookNeynarRoute: typeof ApiPublicWebhookNeynarRoute
 }
 
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchMatchIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/share/og': {
+      id: '/api/share/og'
+      path: '/api/share/og'
+      fullPath: '/api/share/og'
+      preLoaderRoute: typeof ApiShareOgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhook/neynar': {
       id: '/api/public/webhook/neynar'
       path: '/api/public/webhook/neynar'
@@ -414,8 +434,19 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRoute,
   InviteMatchIdRoute: InviteMatchIdRoute,
   MatchMatchIdRoute: MatchMatchIdRoute,
+  ApiShareOgRoute: ApiShareOgRoute,
   ApiPublicWebhookNeynarRoute: ApiPublicWebhookNeynarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

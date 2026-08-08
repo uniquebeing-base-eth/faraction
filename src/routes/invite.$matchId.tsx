@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { InviteHandoff } from "@/components/InviteHandoff";
 import { PROD_ORIGIN } from "@/lib/config";
-import { frameMeta } from "@/lib/frame-meta";
+import { buildShareMeta, shareImageUrl } from "@/lib/share-meta";
 
 const searchSchema = z.object({ m: z.string().optional() });
 
@@ -20,19 +20,17 @@ export const Route = createFileRoute("/invite/$matchId")({
         name: "description",
         content: `You have been challenged to FarAction match ${params.matchId}. Match the stake and fight on Base.`,
       },
-      { property: "og:title", content: `FarAction match invite · ${params.matchId}` },
-      {
-        property: "og:description",
-        content: "Accept the challenge, match the stake, winner takes 90% of the pot.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:image", content: `${PROD_ORIGIN}/preview.png` },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: `${PROD_ORIGIN}/preview.png` },
-      ...frameMeta({
+      ...buildShareMeta({
         url: `${PROD_ORIGIN}/invite/${params.matchId}`,
-        title: "Accept the challenge",
-        imageUrl: `${PROD_ORIGIN}/image.jpg`,
+        title: `FarAction challenge · ${params.matchId}`,
+        description: "Accept the challenge, match the stake, and take the bout.",
+        imageUrl: shareImageUrl({
+          kind: "challenge",
+          matchId: params.matchId,
+          mode: "1v1",
+          season: "Genesis: The Awakening",
+        }),
+        buttonTitle: "Accept the challenge",
       }),
     ],
     links: [{ rel: "canonical", href: `/invite/${params.matchId}` }],

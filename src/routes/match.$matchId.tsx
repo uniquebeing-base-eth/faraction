@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { InviteHandoff } from "@/components/InviteHandoff";
 import { PROD_ORIGIN } from "@/lib/config";
-import { frameMeta } from "@/lib/frame-meta";
+import { buildShareMeta, shareImageUrl } from "@/lib/share-meta";
 
 const searchSchema = z.object({ m: z.string().optional() });
 
@@ -18,19 +18,17 @@ export const Route = createFileRoute("/match/$matchId")({
         name: "description",
         content: `FarAction match ${params.matchId} on Base. Open the bout, match the stake and fight for the pot.`,
       },
-      { property: "og:title", content: `FarAction match · ${params.matchId}` },
-      {
-        property: "og:description",
-        content: "Staked 1 vs 1 on Base — winner takes 90% of the pot.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:image", content: `${PROD_ORIGIN}/preview.png` },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: `${PROD_ORIGIN}/preview.png` },
-      ...frameMeta({
+      ...buildShareMeta({
         url: `${PROD_ORIGIN}/match/${params.matchId}`,
-        title: "Enter the bout",
-        imageUrl: `${PROD_ORIGIN}/image.jpg`,
+        title: `FarAction match · ${params.matchId}`,
+        description: "Staked 1 vs 1 on Base — winner takes 90% of the pot.",
+        imageUrl: shareImageUrl({
+          kind: "match",
+          matchId: params.matchId,
+          mode: "1v1",
+          season: "Genesis: The Awakening",
+        }),
+        buttonTitle: "Enter the bout",
       }),
     ],
     links: [{ rel: "canonical", href: `/match/${params.matchId}` }],

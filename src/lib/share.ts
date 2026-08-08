@@ -6,6 +6,11 @@
  * share always works.
  */
 import { loadSdk, isInMiniApp } from "@/lib/miniapp";
+import { shareImageUrl, type SharePreviewContext } from "@/lib/share-meta";
+
+export function battleShareImage(context: SharePreviewContext = {}): string {
+  return shareImageUrl(context);
+}
 
 export async function shareCast(
   text: string,

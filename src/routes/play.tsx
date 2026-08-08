@@ -5,7 +5,7 @@ import { generateAIOrder, resolveRound, type SlotResult } from "@/lib/game/comba
 import { usePlayer, displayHandle } from "@/lib/game/store";
 import { useWallet } from "@/lib/onchain/wallet";
 import { recordRankedResult } from "@/lib/rank.functions";
-import { shareCast } from "@/lib/share";
+import { battleShareImage, shareCast } from "@/lib/share";
 import { PROD_ORIGIN } from "@/lib/config";
 import {
   clearActiveMatch,
