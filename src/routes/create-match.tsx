@@ -14,6 +14,7 @@ import {
   Send,
   Copy,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { Screen } from "@/components/Screen";
 import { usePlayer, passIsActive, displayHandle, normalizeHandle } from "@/lib/game/store";
@@ -332,22 +333,55 @@ function CreateMatch() {
             )}
           </div>
           {error ? <p className="text-xs text-strike">{error}</p> : null}
+          {blockedBy1v1 && pendingRow ? (
+            <div className="space-y-2 rounded-lg border border-strike/50 bg-strike/10 p-3">
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                You already have a pending 1 vs 1 —{" "}
+                <span className="font-display text-accent">{pendingRow.match_id}</span>. Finish it
+                or cancel it before opening another.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/lobby" })}
+                  className="fa-btn-ghost flex-1"
+                >
+                  Go to lobby
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cancelPending.mutate()}
+                  disabled={cancelPending.isPending}
+                  className="fa-btn-ghost flex-1"
+                >
+                  {cancelPending.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <X className="size-4" />
+                  )}
+                  Cancel it
+                </button>
+              </div>
+            </div>
+          ) : null}
           <button
             type="button"
             onClick={start}
-            disabled={create.isPending || passLocked}
+            disabled={create.isPending || passLocked || blockedBy1v1}
             className="fa-btn w-full disabled:opacity-40"
           >
             {create.isPending ? (
               <Loader2 className="size-4 animate-spin" />
-            ) : passLocked ? (
+            ) : passLocked || blockedBy1v1 ? (
               <Lock className="size-4" />
             ) : mode === "1v1" && opponent ? (
               <Send className="size-4" />
             ) : (
               <Swords className="size-4" />
             )}
-            {passLocked
+            {blockedBy1v1
+              ? "1 vs 1 already pending"
+              : passLocked
               ? "Season Pass required"
               : create.isPending
                 ? "Confirming payment…"
