@@ -308,6 +308,20 @@ function CreateMatch() {
             >
               <ArrowRight className="size-4" /> Enter lobby
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                sfx.tap();
+                const to = opponent ? `@${normalizeHandle(opponent.username)} ` : "";
+                void shareCast(
+                  `${to}FarAction ${modeLabel(mode)} open — code ${created.id}. Tap in and take me on ⚔️`,
+                  created.link,
+                );
+              }}
+              className="fa-btn-ghost w-full"
+            >
+              <Send className="size-4" /> Cast the invite
+            </button>
             <p className="text-[10px] leading-relaxed text-muted-foreground">
               Anyone with the link or the join code can enter this bout from the Join Match screen.
             </p>
