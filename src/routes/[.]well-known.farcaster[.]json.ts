@@ -33,7 +33,7 @@ const manifest = {
     buttonTitle: "Launch FarAction",
     splashImageUrl: `${DOMAIN}/splash.png`,
     splashBackgroundColor: "#0a0f16",
-    webhookUrl: `https://api.neynar.com/f/app/${NEYNAR_APP_UUID}/event`,
+    webhookUrl: `https://api.neynar.com/f/app/5a6d3230-9538-465f-80a8-9abefd10d965/event`,
     subtitle: "Collect Fight and Earn on Base",
     description: "Battle rival card squads earn FACTS and climb onchain",
     primaryCategory: "games",
