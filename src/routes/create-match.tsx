@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Crown,
@@ -36,13 +36,13 @@ import {
 } from "@/lib/game/match";
 import { createStakedMatch } from "@/lib/onchain/actions";
 import { createChallenge } from "@/lib/neynar.functions";
-import { createMatchRecord } from "@/lib/matches.functions";
+import { createMatchRecord, listMyMatches, updateMatchStatus } from "@/lib/matches.functions";
 import { FarcasterSearch } from "@/components/FarcasterSearch";
 import type { FarcasterUser } from "@/lib/neynar.server";
 import { useFactsPrice, formatFactsAmount } from "@/lib/facts-price";
 import { pushActivity } from "@/lib/activity";
 import { shareCast } from "@/lib/share";
-import { addMiniApp } from "@/lib/miniapp";
+import { promptAddMiniApp } from "@/lib/miniapp";
 import { sfx } from "@/lib/sound";
 
 export const Route = createFileRoute("/create-match")({
@@ -115,6 +115,31 @@ function CreateMatch() {
 
   const challenge = useServerFn(createChallenge);
   const persist = useServerFn(createMatchRecord);
+  const mine = useServerFn(listMyMatches);
+  const setStatus = useServerFn(updateMatchStatus);
+
+  // A player may only ever have one live 1 vs 1 open at a time — otherwise
+  // invites pile up and opponents land in the wrong lobby.
+  const pending = useQuery({
+    queryKey: ["my-matches", displayHandle(player)],
+    queryFn: () => mine({ data: { handle: displayHandle(player) } }),
+    staleTime: 10_000,
+  });
+  const pendingRow = (pending.data as unknown as { match_id: string; mode: string; status: string }[] | undefined)?.find(
+    (r) => r.mode === "1v1" && (r.status === "open" || r.status === "locked"),
+  );
+  const blockedBy1v1 = mode === "1v1" && !created && Boolean(pendingRow);
+
+  const cancelPending = useMutation({
+    mutationFn: async () => {
+      if (!pendingRow) return;
+      await setStatus({ data: { matchId: pendingRow.match_id, status: "cancelled" } });
+    },
+    onSuccess: () => {
+      sfx.tap();
+      void pending.refetch();
+    },
+  });
 
   const pass = passIsActive(player);
   const passLocked = requiresSeasonPass(mode) && !pass;
@@ -172,7 +197,7 @@ function CreateMatch() {
       sfx.coin();
       // Creating a match is a real user gesture — the right moment to ask for
       // the mini app + notification permission natively.
-      void addMiniApp().catch(() => undefined);
+      void promptAddMiniApp().catch(() => undefined);
       // Fees and stakes leave the wallet onchain — re-read the live balances.
       void wallet.refetch();
 
@@ -205,6 +230,12 @@ function CreateMatch() {
   const start = () => {
     if (passLocked) {
       setError("Ranked Mode requires an active Season Pass.");
+      return;
+    }
+    if (blockedBy1v1 && pendingRow) {
+      setError(
+        `You already have a pending 1 vs 1 (${pendingRow.match_id}). Finish or cancel it first.`,
+      );
       return;
     }
     if (staked && balance < stake) {
