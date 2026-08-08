@@ -12,6 +12,7 @@ import { GameWorld } from "@/components/GameWorld";
 import { CardTile } from "@/components/CardTile";
 import { ENTRY_FEE_USDC, loadActiveMatch, newMatchId, saveActiveMatch } from "@/lib/game/match";
 import { chargeEntryFee } from "@/lib/payment-flows";
+import { setMatchLoadout } from "@/lib/matches.functions";
 
 export const Route = createFileRoute("/loadout")({
   head: () => ({
@@ -51,9 +52,45 @@ function Loadout() {
   const enterArena = useMutation({
     mutationFn: async () => {
       const existing = loadActiveMatch();
-      if (existing?.entryReceiptId) return;
-      const id = existing?.id ?? newMatchId();
-      await chargeEntryFee({ matchId: id, mode: existing?.mode ?? "house", payer: displayHandle(player) });
+      if (!existing) {
+        return;
+      }
+
+      if (existing.mode === "1v1") {
+        const role = existing.role;
+        const row = await setMatchLoadout({
+          data: {
+            matchId: existing.id,
+            role,
+            fighterId: player.fighterId || fighter.id,
+            deck: sequence,
+            ready: true,
+          },
+        });
+
+        const next = {
+          ...existing,
+          hostFighterId: role === "host" ? player.fighterId || fighter.id : existing.hostFighterId,
+          ...(role === "joiner" && existing.joinerFighterId
+            ? { joinerFighterId: existing.joinerFighterId }
+            : {}),
+          ...(role === "joiner" && !existing.joinerFighterId
+            ? { joinerFighterId: player.fighterId || fighter.id }
+            : {}),
+          hostDeck: role === "host" ? sequence : existing.hostDeck ?? player.deck,
+          joinerDeck: role === "joiner" ? sequence : existing.joinerDeck ?? player.deck,
+          hostReady: role === "host" ? true : Boolean((row as any)?.host_ready ?? existing.hostReady),
+          joinerReady: role === "joiner" ? true : Boolean((row as any)?.joiner_ready ?? existing.joinerReady),
+          paid: true,
+        };
+        saveActiveMatch(next);
+        navigate({ to: "/lobby" });
+        return;
+      }
+
+      if (existing.entryReceiptId) return;
+      const id = existing.id ?? newMatchId();
+      await chargeEntryFee({ matchId: id, mode: existing.mode, payer: displayHandle(player) });
       saveActiveMatch({
         ...(existing ?? {
           id,
@@ -71,7 +108,11 @@ function Loadout() {
         entryReceiptId: id,
       });
     },
-    onSuccess: () => navigate({ to: "/play" }),
+    onSuccess: () => {
+      const existing = loadActiveMatch();
+      if (existing?.mode === "1v1") return;
+      navigate({ to: "/play" });
+    },
     onError: (e) =>
       setFeeError(
         e instanceof Error && e.message

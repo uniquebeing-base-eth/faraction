@@ -32,6 +32,10 @@ export interface ActiveMatch extends MatchConfig {
   role: MatchRole;
   joinerHandle?: string;
   joinerFighterId?: string;
+  hostReady?: boolean;
+  joinerReady?: boolean;
+  hostDeck?: string[];
+  joinerDeck?: string[];
   /** Farcaster handle challenged via Neynar search, when applicable. */
   invitedUsername?: string;
   paid: boolean;
@@ -196,9 +200,13 @@ export interface MatchRecord {
   host_handle: string;
   host_fid: number | null;
   host_fighter_id: string;
+  host_deck?: unknown;
+  host_ready?: boolean;
   joiner_handle: string | null;
   joiner_fid: number | null;
   joiner_fighter_id: string | null;
+  joiner_deck?: unknown;
+  joiner_ready?: boolean;
   invited_username: string | null;
   status: string;
   host_paid: boolean;
@@ -224,12 +232,23 @@ export function configFromRecord(row: MatchRecord): MatchConfig {
 
 /** Restore the local active-match record from a persisted row. */
 export function activeFromRecord(row: MatchRecord, role: MatchRole): ActiveMatch {
+  const hostDeck = Array.isArray(row.host_deck)
+    ? (row.host_deck as unknown[]).filter((v): v is string => typeof v === "string")
+    : [];
+  const joinerDeck = Array.isArray(row.joiner_deck)
+    ? (row.joiner_deck as unknown[]).filter((v): v is string => typeof v === "string")
+    : [];
+
   return {
     ...configFromRecord(row),
     role,
     ...(row.joiner_handle ? { joinerHandle: row.joiner_handle } : {}),
     ...(row.joiner_fighter_id ? { joinerFighterId: row.joiner_fighter_id } : {}),
     ...(row.invited_username ? { invitedUsername: row.invited_username } : {}),
+    hostReady: Boolean(row.host_ready),
+    joinerReady: Boolean(row.joiner_ready),
+    hostDeck,
+    joinerDeck,
     paid: role === "host" ? row.host_paid : row.joiner_paid,
   };
 }

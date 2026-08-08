@@ -98,6 +98,25 @@ export async function dbSetMatchPaid(matchId: string, role: "host" | "joiner"): 
   return data as unknown as MatchRow;
 }
 
+export async function dbSetMatchLoadout(input: {
+  matchId: string;
+  role: "host" | "joiner";
+  fighterId: string;
+  deck: string[];
+  ready: boolean;
+}): Promise<MatchRow> {
+  const supabase = getSupabasePublic() as any;
+  const { data, error } = await supabase.rpc("set_match_loadout", {
+    p_match_id: input.matchId,
+    p_role: input.role,
+    p_fighter_id: input.fighterId,
+    p_deck: input.deck,
+    p_ready: input.ready,
+  });
+  if (error) throw new Error(error.message);
+  return data as unknown as MatchRow;
+}
+
 export async function dbSetMatchStatus(matchId: string, status: string): Promise<MatchRow> {
   const supabase = getSupabasePublic();
   const { data, error } = await supabase.rpc("set_match_status", {

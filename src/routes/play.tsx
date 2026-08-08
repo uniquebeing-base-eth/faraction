@@ -49,19 +49,40 @@ function Play() {
     setMatch(loadActiveMatch());
   }, []);
 
-  const fighter = CHARACTERS.find((c) => c.id === player.fighterId) ?? CHARACTERS[0]!;
+  const friendlyMatch = match?.mode === "1v1";
+  const localRole = friendlyMatch ? match.role : "host";
+  const localFighterId = friendlyMatch
+    ? (localRole === "host" ? match.hostFighterId : match.joinerFighterId ?? player.fighterId)
+    : player.fighterId;
+  const opponentFighterId = friendlyMatch
+    ? (localRole === "host" ? match.joinerFighterId ?? match.hostFighterId : match.hostFighterId)
+    : null;
+  const localDeck = friendlyMatch
+    ? (localRole === "host" ? (match.hostDeck ?? player.deck) : (match.joinerDeck ?? player.deck))
+    : player.deck;
+  const opponentDeck = friendlyMatch
+    ? (localRole === "host" ? (match.joinerDeck ?? []) : (match.hostDeck ?? []))
+    : [];
+
+  const fighter = CHARACTERS.find((c) => c.id === localFighterId) ?? CHARACTERS[0]!;
   const opponent = useMemo(
     () =>
-      (() => {
-        const pool = CHARACTERS.filter((c) => c.id !== fighter.id);
-        return pool[Math.floor(Math.random() * pool.length)] ?? CHARACTERS[1]!;
-      })(),
-    [fighter.id],
+      friendlyMatch
+        ? (CHARACTERS.find((c) => c.id === opponentFighterId) ?? CHARACTERS.find((c) => c.id !== fighter.id) ?? CHARACTERS[1]!)
+        : (() => {
+            const pool = CHARACTERS.filter((c) => c.id !== fighter.id);
+            return pool[Math.floor(Math.random() * pool.length)] ?? CHARACTERS[1]!;
+          })(),
+    [fighter.id, friendlyMatch, opponentFighterId],
   );
 
   const playerOrder = useMemo<Card[]>(
-    () => player.deck.map((id) => CARDS.find((c) => c.id === id)).filter(Boolean) as Card[],
-    [player.deck],
+    () => localDeck.map((id) => CARDS.find((c) => c.id === id)).filter(Boolean) as Card[],
+    [localDeck],
+  );
+  const opponentOrder = useMemo<Card[]>(
+    () => opponentDeck.map((id) => CARDS.find((c) => c.id === id)).filter(Boolean) as Card[],
+    [opponentDeck],
   );
 
   const [round, setRound] = useState(1);
@@ -80,8 +101,13 @@ function Play() {
   const [shared, setShared] = useState(false);
 
   useEffect(() => {
+    if (!match) return;
+    if (match.mode === "1v1" && !(match.hostReady && match.joinerReady)) {
+      navigate({ to: "/lobby" });
+      return;
+    }
     if (hydrated && playerOrder.length !== 5) navigate({ to: "/loadout" });
-  }, [hydrated, playerOrder.length, navigate]);
+  }, [hydrated, match, navigate, playerOrder.length]);
 
   const opponentName =
     match?.mode === "1v1"
@@ -91,11 +117,13 @@ function Play() {
       : "The House";
 
   const startRound = useCallback(() => {
-    const ai = generateAIOrder(opponent, fighter, match?.difficulty ?? 2, {
-      playerOrder,
-      playerRoundsWon: score.player,
-      opponentRoundsWon: score.opponent,
-    }) as Card[];
+    const ai = friendlyMatch && opponentOrder.length === 5
+      ? opponentOrder
+      : (generateAIOrder(opponent, fighter, match?.difficulty ?? 2, {
+          playerOrder,
+          playerRoundsWon: score.player,
+          opponentRoundsWon: score.opponent,
+        }) as Card[]);
     const result = resolveRound(playerOrder, ai, fighter, opponent);
     setAiOrder(ai);
     setSlots(result.slots);
@@ -103,7 +131,7 @@ function Play() {
     setKnock({ player: 0, opponent: 0 });
     setPhase("revealing");
     sfx.bell();
-  }, [fighter, opponent, playerOrder, score.opponent, score.player, match?.difficulty]);
+  }, [fighter, friendlyMatch, opponent, opponentOrder, playerOrder, score.opponent, score.player, match?.difficulty]);
 
   const revealNext = useCallback(() => {
     if (revealed >= slots.length) return;

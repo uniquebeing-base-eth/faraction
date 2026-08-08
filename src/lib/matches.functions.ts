@@ -121,6 +121,24 @@ export const markMatchPaid = createServerFn({ method: "POST" })
     return row;
   });
 
+/** Save a player's fighter + deck and mark them ready for the shared 1v1 bout. */
+export const setMatchLoadout = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        matchId: codeSchema,
+        role: z.enum(["host", "joiner"]),
+        fighterId: z.string().min(1).max(32),
+        deck: z.array(z.string().min(1).max(64)),
+        ready: z.boolean(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { dbSetMatchLoadout } = await import("./matches.server");
+    return await dbSetMatchLoadout(data);
+  });
+
 /** Cancel or complete a match. */
 export const updateMatchStatus = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>

@@ -145,7 +145,8 @@ function Lobby() {
       };
       saveActiveMatch(next);
       setMatch(next);
-      navigate({ to: player.deck.length === 5 ? "/play" : "/loadout" });
+      const canStart = current.mode !== "1v1" || Boolean(current.hostReady && current.joinerReady);
+      navigate({ to: canStart && player.deck.length === 5 ? "/play" : "/loadout" });
     },
     onError: (e) =>
       setFeeError(
@@ -211,8 +212,16 @@ function Lobby() {
 
   const start = () => {
     setFeeError("");
-    if (match) ready.mutate(match);
+    if (!match) return;
+    if (match.mode === "1v1" && !(match.hostReady && match.joinerReady)) {
+      setFeeError("Both players must lock their loadout before the match can begin.");
+      return;
+    }
+    ready.mutate(match);
   };
+
+  const bothLoadoutsLocked = match?.mode === "1v1" ? Boolean(match.hostReady && match.joinerReady) : true;
+  const canStart = Boolean(match) && (match.mode !== "1v1" || bothLoadoutsLocked);
 
   return (
     <Screen
@@ -255,7 +264,7 @@ function Lobby() {
           <button
             type="button"
             onClick={start}
-            disabled={!opponentIn || ready.isPending}
+            disabled={!opponentIn || !canStart || ready.isPending}
             className="fa-btn w-full disabled:opacity-40"
           >
             {ready.isPending ? (
@@ -267,9 +276,11 @@ function Lobby() {
               ? "Confirming entry fee…"
               : !opponentIn
                 ? "Waiting for opponent"
-                : match.entryReceiptId
-                  ? "Start battle"
-                  : `Ready · pay ${ENTRY_FEE_USDC.toFixed(2)} USDC`}
+                : match.mode === "1v1" && !bothLoadoutsLocked
+                  ? "Waiting for both loadouts"
+                  : match.entryReceiptId
+                    ? "Start battle"
+                    : `Ready · pay ${ENTRY_FEE_USDC.toFixed(2)} USDC`}
           </button>
           <button type="button" onClick={cancel} className="fa-btn-ghost w-full">
             <X className="size-4" /> Cancel match
@@ -340,6 +351,10 @@ function Lobby() {
             {!opponentIn ? (
               <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
                 <Loader2 className="size-3 animate-spin" /> Waiting for your opponent to accept…
+              </p>
+            ) : match.mode === "1v1" && !bothLoadoutsLocked ? (
+              <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <Loader2 className="size-3 animate-spin" /> Waiting for both players to lock their fighter and deck…
               </p>
             ) : null}
           </div>
