@@ -52,47 +52,9 @@ function Loadout() {
   const enterArena = useMutation({
     mutationFn: async () => {
       const existing = loadActiveMatch();
-      if (!existing) {
-        return;
-      }
-
-      if (existing.mode === "1v1") {
-        const role = existing.role;
-        const row = await setMatchLoadout({
-          data: {
-            matchId: existing.id,
-            role,
-            fighterId: player.fighterId || fighter.id,
-            deck: sequence,
-            ready: true,
-          },
-        });
-
-        const next = {
-          ...existing,
-          hostFighterId: role === "host" ? player.fighterId || fighter.id : existing.hostFighterId,
-          ...(role === "joiner" && existing.joinerFighterId
-            ? { joinerFighterId: existing.joinerFighterId }
-            : {}),
-          ...(role === "joiner" && !existing.joinerFighterId
-            ? { joinerFighterId: player.fighterId || fighter.id }
-            : {}),
-          hostDeck: role === "host" ? sequence : existing.hostDeck ?? player.deck,
-          joinerDeck: role === "joiner" ? sequence : existing.joinerDeck ?? player.deck,
-          hostReady: role === "host" ? true : Boolean((row as any)?.host_ready ?? existing.hostReady),
-          joinerReady: role === "joiner" ? true : Boolean((row as any)?.joiner_ready ?? existing.joinerReady),
-          paid: true,
-        };
-        saveActiveMatch(next);
-        navigate({ to: "/lobby" });
-        return;
-      }
-
-      if (existing.entryReceiptId) return;
-      const id = existing.id ?? newMatchId();
-      await chargeEntryFee({ matchId: id, mode: existing.mode, payer: displayHandle(player) });
-      saveActiveMatch({
-        ...(existing ?? {
+      const id = existing?.id ?? newMatchId();
+      const match =
+        existing ?? {
           id,
           mode: "house" as const,
           staked: false,
@@ -103,9 +65,51 @@ function Loadout() {
           hostFighterId: player.fighterId || fighter.id,
           createdAt: Date.now(),
           role: "host" as const,
+          paid: false,
+        };
+
+      if (!existing) {
+        saveActiveMatch(match);
+      }
+
+      if (match.mode === "1v1") {
+        const role = match.role;
+        const row = await setMatchLoadout({
+          data: {
+            matchId: match.id,
+            role,
+            fighterId: player.fighterId || fighter.id,
+            deck: sequence,
+            ready: true,
+          },
+        });
+
+        const next = {
+          ...match,
+          hostFighterId: role === "host" ? player.fighterId || fighter.id : match.hostFighterId,
+          ...(role === "joiner" && match.joinerFighterId
+            ? { joinerFighterId: match.joinerFighterId }
+            : {}),
+          ...(role === "joiner" && !match.joinerFighterId
+            ? { joinerFighterId: player.fighterId || fighter.id }
+            : {}),
+          hostDeck: role === "host" ? sequence : match.hostDeck ?? player.deck,
+          joinerDeck: role === "joiner" ? sequence : match.joinerDeck ?? player.deck,
+          hostReady: role === "host" ? true : Boolean((row as any)?.host_ready ?? match.hostReady),
+          joinerReady: role === "joiner" ? true : Boolean((row as any)?.joiner_ready ?? match.joinerReady),
           paid: true,
-        }),
-        entryReceiptId: id,
+        };
+        saveActiveMatch(next);
+        navigate({ to: "/lobby" });
+        return;
+      }
+
+      if (match.entryReceiptId) return;
+      await chargeEntryFee({ matchId: match.id, mode: match.mode, payer: displayHandle(player) });
+      saveActiveMatch({
+        ...match,
+        paid: true,
+        entryReceiptId: match.id,
       });
     },
     onSuccess: () => {
