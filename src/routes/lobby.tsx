@@ -171,9 +171,14 @@ function Lobby() {
     }
   };
 
+  const invited = match.invitedUsername?.replace(/^@/, "");
+
   const share = () => {
     sfx.tap();
-    void shareCast(castText(match), link);
+    const text = invited
+      ? `@${invited} ${castText(match)}`
+      : castText(match);
+    void shareCast(text, link);
   };
 
   const copyCode = async () => {
@@ -272,9 +277,16 @@ function Lobby() {
             name={
               match.mode === "house"
                 ? "The House"
-                : (match.joinerHandle ?? (opponentIn ? "Challenger" : "Open seat"))
+                : (match.joinerHandle ??
+                  (invited ? `@${invited}` : opponentIn ? "Challenger" : "Open seat"))
             }
-            role={match.mode === "house" ? "House AI" : "Player 2"}
+            role={
+              match.mode === "house"
+                ? "House AI"
+                : !match.joinerHandle && invited
+                  ? "Challenged · awaiting accept"
+                  : "Player 2"
+            }
             art={match.mode === "house" ? CHARACTERS[3]!.fullArt : undefined}
             colour="var(--accent)"
             ready={opponentIn}
