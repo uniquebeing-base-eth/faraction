@@ -117,6 +117,7 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
   const totalKnock = hostKnock + joinerKnock || 1;
 
   const currentIdx = Math.min(resolved, 4);
+  const displayIdx = resolved > 0 && myRevealed === theirRevealed ? Math.min(resolved - 1, 4) : currentIdx;
   const lastSlot = resolved > 0 ? slots[resolved - 1] : undefined;
   const myLastWin = lastSlot ? (isHost ? lastSlot.winner === "player" : lastSlot.winner === "opponent") : false;
 
@@ -267,20 +268,20 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
       <div className="pointer-events-none absolute inset-x-0 top-[32%] z-20 flex flex-col items-center gap-3 px-8">
         <div className="flex items-center gap-6">
           <BattleCard
-            card={myOrder[currentIdx]}
+            card={myOrder[displayIdx]}
             colour={meChar.color}
             side="left"
-            hidden={myRevealed <= currentIdx}
+            hidden={myRevealed <= displayIdx}
           />
           <div className="text-center">
             <p className="font-display text-3xl leading-none font-bold text-accent">VS</p>
-            <p className="label-xs mt-1">Slot {Math.min(currentIdx + 1, 5)} / 5</p>
+            <p className="label-xs mt-1">Slot {Math.min(displayIdx + 1, 5)} / 5</p>
           </div>
           <BattleCard
-            card={theirOrder[currentIdx]}
+            card={theirOrder[displayIdx]}
             colour={themChar.color}
             side="right"
-            hidden={theirRevealed <= currentIdx}
+            hidden={theirRevealed <= displayIdx}
           />
         </div>
 
