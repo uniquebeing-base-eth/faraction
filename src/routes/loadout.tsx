@@ -93,12 +93,26 @@ function Loadout() {
           ...(role === "joiner" && !match.joinerFighterId
             ? { joinerFighterId: player.fighterId || fighter.id }
             : {}),
-          hostDeck: role === "host" ? sequence : match.hostDeck ?? player.deck,
-          joinerDeck: role === "joiner" ? sequence : match.joinerDeck ?? player.deck,
-          hostReady: role === "host" ? true : Boolean((row as any)?.host_ready ?? match.hostReady),
-          joinerReady: role === "joiner" ? true : Boolean((row as any)?.joiner_ready ?? match.joinerReady),
+          hostDeck:
+            role === "host"
+              ? sequence
+              : Array.isArray((row as any)?.host_deck)
+              ? (row as any).host_deck.filter((v: unknown): v is string => typeof v === "string")
+              : match.hostDeck ?? player.deck,
+          joinerDeck:
+            role === "joiner"
+              ? sequence
+              : Array.isArray((row as any)?.joiner_deck)
+              ? (row as any).joiner_deck.filter((v: unknown): v is string => typeof v === "string")
+              : match.joinerDeck ?? player.deck,
+          hostReady: role === "host"
+            ? true
+            : Boolean((row as any)?.host_ready ?? match.hostReady),
+          joinerReady: role === "joiner"
+            ? true
+            : Boolean((row as any)?.joiner_ready ?? match.joinerReady),
           paid: true,
-        };
+        }; 
         saveActiveMatch(next);
         navigate({ to: "/lobby" });
         return;

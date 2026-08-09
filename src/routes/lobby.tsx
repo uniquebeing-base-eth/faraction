@@ -105,14 +105,43 @@ function Lobby() {
 
   useEffect(() => {
     if (!liveRow || !match) return;
-    if (liveRow.joiner_handle) {
+
+    const next: Partial<ActiveMatch> = {};
+    if (liveRow.joiner_handle && match.joinerHandle !== liveRow.joiner_handle) {
+      next.joinerHandle = liveRow.joiner_handle;
       setOpponentIn(true);
-      if (match.joinerHandle !== liveRow.joiner_handle) {
-        const next: ActiveMatch = { ...match, joinerHandle: liveRow.joiner_handle };
-        saveActiveMatch(next);
-        setMatch(next);
-        sfx.bell();
-      }
+    }
+    if (liveRow.host_fighter_id && match.hostFighterId !== liveRow.host_fighter_id) {
+      next.hostFighterId = liveRow.host_fighter_id;
+    }
+    if (liveRow.joiner_fighter_id && match.joinerFighterId !== liveRow.joiner_fighter_id) {
+      next.joinerFighterId = liveRow.joiner_fighter_id;
+    }
+
+    const hostDeck = Array.isArray(liveRow.host_deck)
+      ? (liveRow.host_deck as unknown[]).filter((v): v is string => typeof v === "string")
+      : undefined;
+    const joinerDeck = Array.isArray(liveRow.joiner_deck)
+      ? (liveRow.joiner_deck as unknown[]).filter((v): v is string => typeof v === "string")
+      : undefined;
+
+    if (hostDeck && JSON.stringify(hostDeck) !== JSON.stringify(match.hostDeck ?? [])) {
+      next.hostDeck = hostDeck;
+    }
+    if (joinerDeck && JSON.stringify(joinerDeck) !== JSON.stringify(match.joinerDeck ?? [])) {
+      next.joinerDeck = joinerDeck;
+    }
+
+    const hostReady = Boolean(liveRow.host_ready);
+    const joinerReady = Boolean(liveRow.joiner_ready);
+    if (hostReady !== Boolean(match.hostReady)) next.hostReady = hostReady;
+    if (joinerReady !== Boolean(match.joinerReady)) next.joinerReady = joinerReady;
+
+    if (Object.keys(next).length > 0) {
+      const merged: ActiveMatch = { ...match, ...next };
+      saveActiveMatch(merged);
+      setMatch(merged);
+      sfx.bell();
     }
   }, [liveRow, match]);
 
