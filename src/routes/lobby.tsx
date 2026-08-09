@@ -20,7 +20,12 @@ import {
   type ActiveMatch,
   type MatchRecord,
 } from "@/lib/game/match";
-import { fetchMatch, listMyMatches, markMatchPaid, updateMatchStatus } from "@/lib/matches.functions";
+import {
+  fetchMatch,
+  listMyMatches,
+  markMatchPaid,
+  updateMatchStatus,
+} from "@/lib/matches.functions";
 import { sfx } from "@/lib/sound";
 import { battleShareImage, shareCast } from "@/lib/share";
 import { chargeEntryFee } from "@/lib/payment-flows";
@@ -51,7 +56,6 @@ function Lobby() {
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
-  const [opponentIn, setOpponentIn] = useState(false);
   const [feeError, setFeeError] = useState("");
   const wallet = useTokenBalances();
 
@@ -68,7 +72,6 @@ function Lobby() {
     if (local) {
       setMatch(local);
       setLink(inviteLink(local));
-      if (local.mode === "house") setOpponentIn(true);
       return;
     }
     void mine({ data: { handle: displayHandle(player) } })
@@ -85,7 +88,9 @@ function Lobby() {
         saveActiveMatch(restored);
         setMatch(restored);
         setLink(inviteLink(restored));
-        if (restored.mode === "house" || row.joiner_handle) setOpponentIn(true);
+        if (restored.mode === "house" || row.joiner_handle) {
+          /* no-op: opponent presence is derived from live match state */
+        }
       })
       .catch(() => navigate({ to: "/create-match" }));
     return () => {
@@ -109,7 +114,6 @@ function Lobby() {
     const next: Partial<ActiveMatch> = {};
     if (liveRow.joiner_handle && match.joinerHandle !== liveRow.joiner_handle) {
       next.joinerHandle = liveRow.joiner_handle;
-      setOpponentIn(true);
     }
     if (liveRow.host_fighter_id && match.hostFighterId !== liveRow.host_fighter_id) {
       next.hostFighterId = liveRow.host_fighter_id;
@@ -188,7 +192,13 @@ function Lobby() {
   if (!match) return null;
 
   const { pot, winnerTake, fee } = potFor(match);
-  const host = CHARACTERS.find((c) => c.id === match.hostFighterId) ?? CHARACTERS[0]!;
+  const hostFighterId = liveRow?.host_fighter_id ?? match.hostFighterId;
+  const joinerFighterId = liveRow?.joiner_fighter_id ?? match.joinerFighterId;
+  const hostReadyValue = liveRow ? Boolean(liveRow.host_ready) : Boolean(match.hostReady);
+  const joinerReadyValue = liveRow ? Boolean(liveRow.joiner_ready) : Boolean(match.joinerReady);
+  const hasOpponent = Boolean(match.joinerHandle || liveRow?.joiner_handle);
+  const host = CHARACTERS.find((c) => c.id === hostFighterId) ?? CHARACTERS[0]!;
+  const joiner = CHARACTERS.find((c) => c.id === joinerFighterId) ?? undefined;
 
   const copy = async () => {
     try {
@@ -202,12 +212,12 @@ function Lobby() {
   };
 
   const invited = match.invitedUsername?.replace(/^@/, "");
+  const opponentIn =
+    match.mode === "house" || Boolean(liveRow?.joiner_handle ?? match.joinerHandle);
 
   const share = () => {
     sfx.tap();
-    const text = invited
-      ? `@${invited} ${castText(match)}`
-      : castText(match);
+    const text = invited ? `@${invited} ${castText(match)}` : castText(match);
     const preview = battleShareImage({
       kind: "challenge",
       matchId: match.id,
@@ -234,7 +244,8 @@ function Lobby() {
     sfx.tap();
     // Stakes are escrowed onchain, so tearing the match down here only clears
     // the local match record — refunds settle through the vault contract.
-    if (match) void setStatus({ data: { matchId: match.id, status: "cancelled" } }).catch(() => undefined);
+    if (match)
+      void setStatus({ data: { matchId: match.id, status: "cancelled" } }).catch(() => undefined);
     clearActiveMatch();
     navigate({ to: "/" });
   };
@@ -242,14 +253,21 @@ function Lobby() {
   const start = () => {
     setFeeError("");
     if (!match) return;
-    if (match.mode === "1v1" && !(match.hostReady && match.joinerReady)) {
+    const hostReadyValue = liveRow ? Boolean(liveRow.host_ready) : Boolean(match.hostReady);
+    const joinerReadyValue = liveRow ? Boolean(liveRow.joiner_ready) : Boolean(match.joinerReady);
+    if (match.mode === "1v1" && !(hostReadyValue && joinerReadyValue)) {
       setFeeError("Both players must lock their loadout before the match can begin.");
       return;
     }
     ready.mutate(match);
   };
 
-  const bothLoadoutsLocked = match?.mode === "1v1" ? Boolean(match.hostReady && match.joinerReady) : true;
+  const bothLoadoutsLocked =
+    match?.mode === "1v1"
+      ? Boolean(
+          (liveRow?.host_ready ?? match.hostReady) && (liveRow?.joiner_ready ?? match.joinerReady),
+        )
+      : true;
   const canStart = Boolean(match) && (match.mode !== "1v1" || bothLoadoutsLocked);
 
   return (
@@ -319,13 +337,20 @@ function Lobby() {
     >
       <div className="fa-scroll flex h-full flex-col gap-4 overflow-y-auto pr-1">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <Seat name={match.hostHandle} role="Host" art={host.fullArt} colour={host.color} ready />
+          <Seat
+            name={match.hostHandle}
+            role="Host"
+            art={host.fullArt}
+            colour={host.color}
+            ready={hostReadyValue}
+          />
           <span className="font-display text-2xl font-bold text-muted-foreground">VS</span>
           <Seat
             name={
               match.mode === "house"
                 ? "The House"
-                : (match.joinerHandle ??
+                : (liveRow?.joiner_handle ??
+                  match.joinerHandle ??
                   (invited ? `@${invited}` : opponentIn ? "Challenger" : "Open seat"))
             }
             role={
@@ -335,9 +360,9 @@ function Lobby() {
                   ? "Challenged · awaiting accept"
                   : "Player 2"
             }
-            art={match.mode === "house" ? CHARACTERS[3]!.fullArt : undefined}
-            colour="var(--accent)"
-            ready={opponentIn}
+            art={match.mode === "house" ? CHARACTERS[3]!.fullArt : joiner?.fullArt}
+            colour={match.mode === "house" ? "var(--accent)" : (joiner?.color ?? "var(--accent)")}
+            ready={match.mode === "house" ? true : joinerReadyValue}
           />
         </div>
 
@@ -383,7 +408,8 @@ function Lobby() {
               </p>
             ) : match.mode === "1v1" && !bothLoadoutsLocked ? (
               <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <Loader2 className="size-3 animate-spin" /> Waiting for both players to lock their fighter and deck…
+                <Loader2 className="size-3 animate-spin" /> Waiting for both players to lock their
+                fighter and deck…
               </p>
             ) : null}
           </div>

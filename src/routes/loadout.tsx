@@ -6,11 +6,17 @@ import { Loader2 } from "lucide-react";
 import { CARDS, CHARACTERS } from "@/lib/game/gameData";
 import { calcEnergyPool } from "@/lib/game/combatEngine";
 import { getStarterArchetypes } from "@/lib/game/archetypes";
-import { usePlayer , displayHandle } from "@/lib/game/store";
+import { usePlayer, displayHandle } from "@/lib/game/store";
 import { TopBar } from "@/components/TopBar";
 import { GameWorld } from "@/components/GameWorld";
 import { CardTile } from "@/components/CardTile";
-import { ENTRY_FEE_USDC, loadActiveMatch, newMatchId, saveActiveMatch } from "@/lib/game/match";
+import {
+  ENTRY_FEE_USDC,
+  loadActiveMatch,
+  newMatchId,
+  saveActiveMatch,
+  type MatchRecord,
+} from "@/lib/game/match";
 import { chargeEntryFee } from "@/lib/payment-flows";
 import { setMatchLoadout } from "@/lib/matches.functions";
 
@@ -53,20 +59,19 @@ function Loadout() {
     mutationFn: async () => {
       const existing = loadActiveMatch();
       const id = existing?.id ?? newMatchId();
-      const match =
-        existing ?? {
-          id,
-          mode: "house" as const,
-          staked: false,
-          token: "FACTS" as const,
-          stake: 0,
-          difficulty: 1 as const,
-          hostHandle: displayHandle(player),
-          hostFighterId: player.fighterId || fighter.id,
-          createdAt: Date.now(),
-          role: "host" as const,
-          paid: false,
-        };
+      const match = existing ?? {
+        id,
+        mode: "house" as const,
+        staked: false,
+        token: "FACTS" as const,
+        stake: 0,
+        difficulty: 1 as const,
+        hostHandle: displayHandle(player),
+        hostFighterId: player.fighterId || fighter.id,
+        createdAt: Date.now(),
+        role: "host" as const,
+        paid: false,
+      };
 
       if (!existing) {
         saveActiveMatch(match);
@@ -84,6 +89,14 @@ function Loadout() {
           },
         });
 
+        const result = row as MatchRecord;
+        const hostDeck = Array.isArray(result.host_deck)
+          ? result.host_deck.filter((v): v is string => typeof v === "string")
+          : (match.hostDeck ?? player.deck);
+        const joinerDeck = Array.isArray(result.joiner_deck)
+          ? result.joiner_deck.filter((v): v is string => typeof v === "string")
+          : (match.joinerDeck ?? player.deck);
+
         const next = {
           ...match,
           hostFighterId: role === "host" ? player.fighterId || fighter.id : match.hostFighterId,
@@ -93,26 +106,12 @@ function Loadout() {
           ...(role === "joiner" && !match.joinerFighterId
             ? { joinerFighterId: player.fighterId || fighter.id }
             : {}),
-          hostDeck:
-            role === "host"
-              ? sequence
-              : Array.isArray((row as any)?.host_deck)
-              ? (row as any).host_deck.filter((v: unknown): v is string => typeof v === "string")
-              : match.hostDeck ?? player.deck,
-          joinerDeck:
-            role === "joiner"
-              ? sequence
-              : Array.isArray((row as any)?.joiner_deck)
-              ? (row as any).joiner_deck.filter((v: unknown): v is string => typeof v === "string")
-              : match.joinerDeck ?? player.deck,
-          hostReady: role === "host"
-            ? true
-            : Boolean((row as any)?.host_ready ?? match.hostReady),
-          joinerReady: role === "joiner"
-            ? true
-            : Boolean((row as any)?.joiner_ready ?? match.joinerReady),
+          hostDeck: role === "host" ? sequence : hostDeck,
+          joinerDeck: role === "joiner" ? sequence : joinerDeck,
+          hostReady: role === "host" ? true : Boolean(result.host_ready ?? match.hostReady),
+          joinerReady: role === "joiner" ? true : Boolean(result.joiner_ready ?? match.joinerReady),
           paid: true,
-        }; 
+        };
         saveActiveMatch(next);
         navigate({ to: "/lobby" });
         return;
