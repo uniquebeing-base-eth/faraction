@@ -10,6 +10,41 @@ const DOMAIN = "https://faraction.signalify.xyz";
  */
 const NEYNAR_APP_UUID = "5a6d3230-9538-465f-80a8-9abefd10d965";
 
+/**
+ * The mini app "surface" definition shared by both the `miniapp` key (current
+ * spec name) and the `frame` key (legacy alias many clients — including some
+ * production Farcaster/Warpcast builds — still read exclusively). Both keys
+ * must carry identical contents or older clients silently fail to launch the
+ * app / register notifications.
+ */
+const surface = {
+  version: "1",
+  name: "FarAction",
+  iconUrl: `${DOMAIN}/icon.png`,
+  homeUrl: DOMAIN,
+  castShareUrl: DOMAIN,
+  imageUrl: `${DOMAIN}/image.jpg`,
+  buttonTitle: "Launch FarAction",
+  splashImageUrl: `${DOMAIN}/splash.png`,
+  splashBackgroundColor: "#0a0f16",
+  webhookUrl: `https://api.neynar.com/f/app/${NEYNAR_APP_UUID}/event`,
+  subtitle: "Collect Fight and Earn on Base",
+  description: "Battle rival card squads earn FACTS and climb onchain",
+  primaryCategory: "games",
+  tags: ["games", "cards", "battle", "base", "rewards"],
+  heroImageUrl: `${DOMAIN}/image.jpg`,
+  tagline: "Collect Fight and Earn on Base",
+  ogTitle: "FarAction",
+  ogDescription: "Onchain card battles and rewards",
+  ogImageUrl: `${DOMAIN}/image.jpg`,
+  noindex: false,
+  requiredChains: ["eip155:8453"],
+  requiredCapabilities: [
+    "actions.composeCast",
+    "actions.addMiniApp",
+    "actions.swapToken",
+  ],
+};
 
 /**
  * Farcaster Mini App manifest, served at /.well-known/farcaster.json.
@@ -23,27 +58,10 @@ const manifest = {
     signature:
       "eQM1qxS2kGb745R3XfOehxQwr/KrltysO6wJjbNt4pxkD10C3Lhs4Hsr+G3ckvAUZ7zYjLQqW0KD66zPB+QbpRw=",
   },
-  miniapp: {
-    version: "1",
-    name: "FarAction",
-    iconUrl: `${DOMAIN}/icon.png`,
-    homeUrl: DOMAIN,
-    castShareUrl: DOMAIN,
-    imageUrl: `${DOMAIN}/image.jpg`,
-    buttonTitle: "Launch FarAction",
-    splashImageUrl: `${DOMAIN}/splash.png`,
-    splashBackgroundColor: "#0a0f16",
-    webhookUrl: `https://api.neynar.com/f/app/5a6d3230-9538-465f-80a8-9abefd10d965/event`,
-    subtitle: "Collect Fight and Earn on Base",
-    description: "Battle rival card squads earn FACTS and climb onchain",
-    primaryCategory: "games",
-    tags: ["games", "cards", "battle", "base", "rewards"],
-    heroImageUrl: `${DOMAIN}/image.jpg`,
-    tagline: "Collect Fight and Earn on Base",
-    ogTitle: "FarAction",
-    ogDescription: "Onchain card battles and rewards",
-    ogImageUrl: `${DOMAIN}/image.jpg`,
-  },
+  // Emitted twice (identical contents) — `miniapp` is the current spec key,
+  // `frame` is the legacy alias still read by some production clients.
+  miniapp: surface,
+  frame: surface,
   baseBuilder: {
     ownerAddress: "0x170c5a413136F094421fad8Dd20285b5e05Fff5e",
   },

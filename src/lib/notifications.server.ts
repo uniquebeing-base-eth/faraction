@@ -129,27 +129,54 @@ export async function sendMiniAppNotification(input: {
       chunks.length === 1 && input.notificationId
         ? await stableUuid(input.notificationId)
         : crypto.randomUUID();
-    const res = await fetch(`${NEYNAR_BASE}/frame/notifications/`, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        "x-api-key": key,
-      },
-      body: JSON.stringify({
-        target_fids: chunk,
-        notification: { title, body, target_url: input.targetUrl, uuid },
-      }),
-    });
 
-    if (res.ok) {
-      sent += chunk.length || 1;
-    } else {
+    // A network failure (DNS, timeout, worker fetch rejection) must never
+    // bubble up and crash whatever request triggered this notification —
+    // every call site treats notifications as best-effort.
+    try {
+      const res = await fetch(`${NEYNAR_BASE}/frame/notifications/`, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          "x-api-key": key,
+        },
+        body: JSON.stringify({
+          target_fids: chunk,
+          notification: { title, body, target_url: input.targetUrl, uuid },
+        }),
+      });
+
+      if (res.ok) {
+        sent += chunk.length || 1;
+      } else {
+        failed += chunk.length || 1;
+        const text = await res.text().catch(() => "<no body>");
+        console.error(`Neynar notification failed [${res.status}]: ${text}`);
+      }
+    } catch (e) {
       failed += chunk.length || 1;
-      console.error(`Neynar notification failed [${res.status}]: ${await res.text()}`);
+      console.error("Neynar notification request threw", e);
     }
   }
 
   return { sent, failed, via: failed && !sent ? "none" : "neynar" };
+}
+
+/**
+ * Same as {@link sendMiniAppNotification} but guarantees it never rejects —
+ * for call sites that fire-and-forget a notification alongside their real
+ * work (join/challenge/result flows) and must not fail the request if
+ * Neynar is down.
+ */
+export async function sendMiniAppNotificationSafe(
+  input: Parameters<typeof sendMiniAppNotification>[0],
+): Promise<SendResult> {
+  try {
+    return await sendMiniAppNotification(input);
+  } catch (e) {
+    console.error("sendMiniAppNotification threw unexpectedly", e);
+    return { sent: 0, failed: input.fids?.length ?? 1, via: "none" };
+  }
 }
 

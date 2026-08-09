@@ -122,6 +122,52 @@ export const markMatchPaid = createServerFn({ method: "POST" })
   });
 
 /** Save a player's fighter + deck and mark them ready for the shared 1v1 bout. */
+export const revealMatchSlot = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        matchId: codeSchema,
+        role: z.enum(["host", "joiner"]),
+        slot: z.number().int().min(0).max(5),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { dbRevealSlot } = await import("./matches.server");
+    return await dbRevealSlot(data);
+  });
+
+/** Close the current round for both players and reset the reveal counters. */
+export const advanceMatchRound = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        matchId: codeSchema,
+        hostWins: z.number().int().min(0).max(3),
+        joinerWins: z.number().int().min(0).max(3),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { dbAdvanceRound } = await import("./matches.server");
+    return await dbAdvanceRound(data);
+  });
+
+/** Pick the shared battle environment. */
+export const setMatchArena = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        matchId: codeSchema,
+        arena: z.enum(["nexus", "mountain", "volcano", "city", "forest", "void"]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { dbSetMatchArena } = await import("./matches.server");
+    return await dbSetMatchArena(data.matchId, data.arena);
+  });
+
 export const setMatchLoadout = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z

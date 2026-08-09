@@ -126,3 +126,50 @@ export async function dbSetMatchStatus(matchId: string, status: string): Promise
   if (error) throw new Error(error.message);
   return data as unknown as MatchRow;
 }
+
+/**
+ * Turn-by-turn 1 vs 1 sync. Each player reveals only their own card; the slot
+ * resolves once both counters reach it, so the bout is genuinely shared.
+ */
+export async function dbRevealSlot(input: {
+  matchId: string;
+  role: "host" | "joiner";
+  slot: number;
+}): Promise<MatchRow> {
+  const supabase = getSupabasePublic() as any;
+  const { data, error } = await supabase.rpc("reveal_match_slot", {
+    p_match_id: input.matchId,
+    p_role: input.role,
+    p_slot: input.slot,
+  });
+  if (error) throw new Error(error.message);
+  return data as unknown as MatchRow;
+}
+
+/** Close the current round and reset both reveal counters. */
+export async function dbAdvanceRound(input: {
+  matchId: string;
+  hostWins: number;
+  joinerWins: number;
+}): Promise<MatchRow> {
+  const supabase = getSupabasePublic() as any;
+  const { data, error } = await supabase.rpc("advance_match_round", {
+    p_match_id: input.matchId,
+    p_host_wins: input.hostWins,
+    p_joiner_wins: input.joinerWins,
+  });
+  if (error) throw new Error(error.message);
+  return data as unknown as MatchRow;
+}
+
+/** Pick the battle environment both players will see. */
+export async function dbSetMatchArena(matchId: string, arena: string): Promise<MatchRow> {
+  const supabase = getSupabasePublic() as any;
+  const { data, error } = await supabase.rpc("set_match_arena", {
+    p_match_id: matchId,
+    p_arena: arena,
+  });
+  if (error) throw new Error(error.message);
+  return data as unknown as MatchRow;
+}
+

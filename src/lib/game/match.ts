@@ -36,6 +36,8 @@ export interface ActiveMatch extends MatchConfig {
   joinerReady?: boolean;
   hostDeck?: string[];
   joinerDeck?: string[];
+  /** Chosen battle environment, e.g. "volcano". */
+  arena?: string;
   /** Farcaster handle challenged via Neynar search, when applicable. */
   invitedUsername?: string;
   paid: boolean;
@@ -212,6 +214,13 @@ export interface MatchRecord {
   host_paid: boolean;
   joiner_paid: boolean;
   created_at: string;
+  /** Shared, turn-by-turn battle state for 1 vs 1 bouts. */
+  round?: number;
+  host_revealed?: number;
+  joiner_revealed?: number;
+  host_round_wins?: number;
+  joiner_round_wins?: number;
+  arena?: string | null;
 }
 
 /** Turn a persisted row back into the match config the screens work with. */
@@ -245,6 +254,7 @@ export function activeFromRecord(row: MatchRecord, role: MatchRole): ActiveMatch
     ...(row.joiner_handle ? { joinerHandle: row.joiner_handle } : {}),
     ...(row.joiner_fighter_id ? { joinerFighterId: row.joiner_fighter_id } : {}),
     ...(row.invited_username ? { invitedUsername: row.invited_username } : {}),
+    ...(row.arena ? { arena: row.arena } : {}),
     hostReady: Boolean(row.host_ready),
     joinerReady: Boolean(row.joiner_ready),
     hostDeck,

@@ -26,6 +26,7 @@ import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]we
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as InviteMatchIdRouteImport } from './routes/invite.$matchId'
 import { Route as MatchMatchIdRouteImport } from './routes/match.$matchId'
+import { Route as ApiPublicNotifyTestRouteImport } from './routes/api/public/notify-test'
 import { Route as ApiShareOgRouteImport } from './routes/api/share/og'
 import { Route as ApiPublicWebhookNeynarRouteImport } from './routes/api/public/webhook/neynar'
 
@@ -115,6 +116,11 @@ const MatchMatchIdRoute = MatchMatchIdRouteImport.update({
   path: '/match/$matchId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicNotifyTestRoute = ApiPublicNotifyTestRouteImport.update({
+  id: '/api/public/notify-test',
+  path: '/api/public/notify-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiShareOgRoute = ApiShareOgRouteImport.update({
   id: '/api/share/og',
   path: '/api/share/og',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/invite/$matchId': typeof InviteMatchIdRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/public/notify-test': typeof ApiPublicNotifyTestRoute
   '/api/share/og': typeof ApiShareOgRoute
   '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRoute
   '/invite/$matchId': typeof InviteMatchIdRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/public/notify-test': typeof ApiPublicNotifyTestRoute
   '/api/share/og': typeof ApiShareOgRoute
   '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/invite/$matchId': typeof InviteMatchIdRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/api/public/notify-test': typeof ApiPublicNotifyTestRoute
   '/api/share/og': typeof ApiShareOgRoute
   '/api/public/webhook/neynar': typeof ApiPublicWebhookNeynarRoute
 }
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/invite/$matchId'
     | '/match/$matchId'
+    | '/api/public/notify-test'
     | '/api/share/og'
     | '/api/public/webhook/neynar'
   fileRoutesByTo: FileRoutesByTo
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/invite/$matchId'
     | '/match/$matchId'
+    | '/api/public/notify-test'
     | '/api/share/og'
     | '/api/public/webhook/neynar'
   id:
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/invite/$matchId'
     | '/match/$matchId'
+    | '/api/public/notify-test'
     | '/api/share/og'
     | '/api/public/webhook/neynar'
   fileRoutesById: FileRoutesById
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   InviteMatchIdRoute: typeof InviteMatchIdRoute
   MatchMatchIdRoute: typeof MatchMatchIdRoute
+  ApiPublicNotifyTestRoute: typeof ApiPublicNotifyTestRoute
   ApiShareOgRoute: typeof ApiShareOgRoute
   ApiPublicWebhookNeynarRoute: typeof ApiPublicWebhookNeynarRoute
 }
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchMatchIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/notify-test': {
+      id: '/api/public/notify-test'
+      path: '/api/public/notify-test'
+      fullPath: '/api/public/notify-test'
+      preLoaderRoute: typeof ApiPublicNotifyTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/share/og': {
       id: '/api/share/og'
       path: '/api/share/og'
@@ -434,19 +454,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRoute,
   InviteMatchIdRoute: InviteMatchIdRoute,
   MatchMatchIdRoute: MatchMatchIdRoute,
+  ApiPublicNotifyTestRoute: ApiPublicNotifyTestRoute,
   ApiShareOgRoute: ApiShareOgRoute,
   ApiPublicWebhookNeynarRoute: ApiPublicWebhookNeynarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
