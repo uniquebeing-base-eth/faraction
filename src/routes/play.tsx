@@ -19,6 +19,7 @@ import { sfx } from "@/lib/sound";
 import { Share2 } from "lucide-react";
 import { TopBar } from "@/components/TopBar";
 import { GameWorld } from "@/components/GameWorld";
+import { VersusBattle } from "@/components/VersusBattle";
 
 export const Route = createFileRoute("/play")({
   head: () => ({
@@ -40,6 +41,19 @@ export const Route = createFileRoute("/play")({
 type Phase = "ready" | "revealing" | "round-end" | "match-end";
 
 function Play() {
+  const [routed, setRouted] = useState<ActiveMatch | null | undefined>(undefined);
+
+  useEffect(() => {
+    setRouted(loadActiveMatch());
+  }, []);
+
+  if (routed === undefined) return null;
+  // A 1 vs 1 bout is a real shared battle, not a solo run against the engine.
+  if (routed && routed.mode === "1v1") return <VersusBattle match={routed} />;
+  return <SoloBattle />;
+}
+
+function SoloBattle() {
   const { player, update, hydrated } = usePlayer();
   const { address } = useWallet();
   const navigate = useNavigate();

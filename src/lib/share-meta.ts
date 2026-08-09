@@ -17,6 +17,9 @@ export interface SharePreviewContext {
   title?: string | undefined;
   description?: string | undefined;
   season?: string | undefined;
+  won?: boolean | undefined;
+  fighter?: string | undefined;
+  oppFighter?: string | undefined;
 }
 
 function normalizeHandle(value?: string, fallback = "fighter") {
@@ -59,6 +62,9 @@ export function shareImageUrl(context: SharePreviewContext = {}): string {
   if (context.token) params.set("token", context.token);
   if (context.reward !== undefined) params.set("reward", String(context.reward));
   if (context.season) params.set("season", context.season);
+  if (context.won !== undefined) params.set("won", context.won ? "1" : "0");
+  if (context.fighter) params.set("fighter", context.fighter);
+  if (context.oppFighter) params.set("oppFighter", context.oppFighter);
   if (context.title) params.set("title", context.title);
   if (context.description) params.set("description", context.description);
   const query = params.toString();
@@ -177,4 +183,68 @@ export function buildShareCardSvg(context: SharePreviewContext = {}): string {
     <text x="954" y="430" fill="#f7fbff" font-size="68" font-family="Arial, Helvetica, sans-serif" font-weight="800">⚔️</text>
   </svg>
   `;
+}
+
+/** Absolute /api/share/og URL for a battle-result share card. */
+export function resultShareImage(opts: {
+  matchId?: string;
+  won: boolean;
+  me: string;
+  opponent: string;
+  mode?: string;
+  reward?: number;
+  fighter?: string;
+  oppFighter?: string;
+}): string {
+  return shareImageUrl({
+    kind: "result",
+    matchId: opts.matchId,
+    won: opts.won,
+    winnerHandle: opts.won ? opts.me : opts.opponent,
+    loserHandle: opts.won ? opts.opponent : opts.me,
+    hostHandle: opts.me,
+    opponentHandle: opts.opponent,
+    mode: opts.mode,
+    reward: opts.reward,
+    fighter: opts.fighter,
+    oppFighter: opts.oppFighter,
+  });
+}
+
+/** Cast copy for a battle result, e.g. "I defeated @bob in FarAction ⚔️". */
+export function resultCastText(opts: { won: boolean; opponent: string; reward?: number }): string {
+  const opponent = normalizeHandle(opts.opponent);
+  const verb = opts.won ? "defeated" : "lost to";
+  const reward = opts.won ? formatReward(opts.reward) : "";
+  const suffix = reward ? ` — earned ${reward}` : "";
+  return `I ${verb} @${opponent} in FarAction ⚔️${suffix}`;
+}
+
+/**
+ * Structured content for the result share card — shared by the SVG fallback
+ * and the satori/PNG renderer so both stay in sync.
+ */
+export interface ResultCardData {
+  wordmark: "WIN" | "DEFEAT";
+  winner: string;
+  loser: string;
+  mode: string;
+  rewardLabel: string;
+  fighter?: string | undefined;
+  oppFighter?: string | undefined;
+}
+
+export function resolveResultCard(context: SharePreviewContext): ResultCardData {
+  const winner = normalizeHandle(context.winnerHandle, "alice");
+  const loser = normalizeHandle(context.loserHandle, "bob");
+  const won = context.won ?? true;
+  return {
+    wordmark: won ? "WIN" : "DEFEAT",
+    winner,
+    loser,
+    mode: context.mode ?? "1v1",
+    rewardLabel: formatReward(context.reward),
+    fighter: context.fighter,
+    oppFighter: context.oppFighter,
+  };
 }

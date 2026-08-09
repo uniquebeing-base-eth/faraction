@@ -37,7 +37,12 @@ import {
 } from "@/lib/game/match";
 import { createStakedMatch } from "@/lib/onchain/actions";
 import { createChallenge } from "@/lib/neynar.functions";
-import { createMatchRecord, listMyMatches, updateMatchStatus } from "@/lib/matches.functions";
+import {
+  createMatchRecord,
+  listMyMatches,
+  setMatchArena,
+  updateMatchStatus,
+} from "@/lib/matches.functions";
 import { FarcasterSearch } from "@/components/FarcasterSearch";
 import type { FarcasterUser } from "@/lib/neynar.server";
 import { useFactsPrice, formatFactsAmount } from "@/lib/facts-price";
@@ -45,6 +50,10 @@ import { pushActivity } from "@/lib/activity";
 import { battleShareImage, shareCast } from "@/lib/share";
 import { promptAddMiniApp } from "@/lib/miniapp";
 import { sfx } from "@/lib/sound";
+import { ArenaStage } from "@/components/ArenaStage";
+import { ARENAS, getArena, type ArenaId } from "@/lib/game/arenas";
+
+const ARENA_KEY = "faraction:arena";
 
 export const Route = createFileRoute("/create-match")({
   head: () => ({
@@ -105,6 +114,10 @@ function CreateMatch() {
   const { price } = useFactsPrice();
 
   const [mode, setMode] = useState<MatchMode>("house");
+  const [arena, setArena] = useState<ArenaId>(() => {
+    if (typeof window === "undefined") return "nexus";
+    return getArena(window.localStorage.getItem(ARENA_KEY)).id;
+  });
   const [staked, setStaked] = useState(false);
   const [token, setToken] = useState<StakeToken>("FACTS");
   const [stake, setStake] = useState<number>(STAKE_PRESETS.FACTS[1]!);
@@ -118,6 +131,7 @@ function CreateMatch() {
   const persist = useServerFn(createMatchRecord);
   const mine = useServerFn(listMyMatches);
   const setStatus = useServerFn(updateMatchStatus);
+  const persistArena = useServerFn(setMatchArena);
 
   // A player may only ever have one live 1 vs 1 open at a time — otherwise
   // invites pile up and opponents land in the wrong lobby.
@@ -209,6 +223,8 @@ function CreateMatch() {
       void promptAddMiniApp().catch(() => undefined);
       // Fees and stakes leave the wallet onchain — re-read the live balances.
       void wallet.refetch();
+      // The arena is shared state: both fighters must load the same environment.
+      void persistArena({ data: { matchId: id, arena } }).catch(() => undefined);
 
       const cfg = {
         id,
@@ -224,6 +240,7 @@ function CreateMatch() {
       };
       saveActiveMatch({
         ...cfg,
+        arena,
         role: "host",
         paid: false,
         ...(invitedUsername ? { invitedUsername } : {}),
@@ -255,8 +272,20 @@ function CreateMatch() {
     create.mutate();
   };
 
+  const setArenaChoice = (id: ArenaId) => {
+    sfx.select();
+    setArena(id);
+    try {
+      window.localStorage.setItem(ARENA_KEY, id);
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
-    <Screen
+    <div className="relative">
+      <ArenaStage arena={arena} className="fixed inset-0" />
+      <Screen
       title="Create Match"
       back="/"
       eyebrow="Match maker"
@@ -466,6 +495,25 @@ function CreateMatch() {
           </div>
         </div>
 
+        <div>
+          <p className="label-xs">Arena</p>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {ARENAS.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setArenaChoice(a.id)}
+                className={`rounded-lg border p-2.5 text-left transition-transform hover:-translate-y-0.5 ${
+                  arena === a.id ? "border-accent bg-accent/10 glow" : "border-border/70 bg-card/40"
+                }`}
+              >
+                <p className="font-display text-xs font-bold">{a.name}</p>
+                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{a.blurb}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {passLocked ? (
           <div className="flex items-center gap-3 rounded-lg border border-facts/50 bg-facts/10 p-3">
             <Lock className="size-4 shrink-0 text-facts" />
@@ -579,6 +627,7 @@ function CreateMatch() {
         </div>
       </div>
     </Screen>
+    </div>
   );
 }
 

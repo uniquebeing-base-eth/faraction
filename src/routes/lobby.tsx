@@ -368,8 +368,8 @@ function Lobby() {
           </div>
         )}
 
-        <Link to="/loadout" className="fa-btn-ghost self-start">
-          Edit loadout
+        <Link to="/select-fighter" className="fa-btn-ghost self-start">
+          Edit loadout · pick fighter &amp; cards
         </Link>
       </div>
     </Screen>

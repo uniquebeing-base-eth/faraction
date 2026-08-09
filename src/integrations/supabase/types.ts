@@ -46,23 +46,33 @@ export type Database = {
       }
       matches: {
         Row: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
@@ -70,23 +80,33 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arena?: string
           created_at?: string
           difficulty?: number
+          host_deck?: Json
           host_fid?: number | null
           host_fighter_id?: string
           host_handle: string
           host_paid?: boolean
+          host_ready?: boolean
+          host_revealed?: number
+          host_round_wins?: number
           host_wallet?: string | null
           id?: string
           invited_fid?: number | null
           invited_username?: string | null
+          joiner_deck?: Json
           joiner_fid?: number | null
           joiner_fighter_id?: string | null
           joiner_handle?: string | null
           joiner_paid?: boolean
+          joiner_ready?: boolean
+          joiner_revealed?: number
+          joiner_round_wins?: number
           joiner_wallet?: string | null
           match_id: string
           mode?: string
+          round?: number
           stake?: number
           staked?: boolean
           status?: string
@@ -94,23 +114,33 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arena?: string
           created_at?: string
           difficulty?: number
+          host_deck?: Json
           host_fid?: number | null
           host_fighter_id?: string
           host_handle?: string
           host_paid?: boolean
+          host_ready?: boolean
+          host_revealed?: number
+          host_round_wins?: number
           host_wallet?: string | null
           id?: string
           invited_fid?: number | null
           invited_username?: string | null
+          joiner_deck?: Json
           joiner_fid?: number | null
           joiner_fighter_id?: string | null
           joiner_handle?: string | null
           joiner_paid?: boolean
+          joiner_ready?: boolean
+          joiner_revealed?: number
+          joiner_round_wins?: number
           joiner_wallet?: string | null
           match_id?: string
           mode?: string
+          round?: number
           stake?: number
           staked?: boolean
           status?: string
@@ -449,6 +479,49 @@ export type Database = {
         Args: { p_days: number; p_wallet: string }
         Returns: string
       }
+      advance_match_round: {
+        Args: { p_host_wins: number; p_joiner_wins: number; p_match_id: string }
+        Returns: {
+          arena: string
+          created_at: string
+          difficulty: number
+          host_deck: Json
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_deck: Json
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          round: number
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_match: {
         Args: {
           p_difficulty: number
@@ -465,23 +538,33 @@ export type Database = {
           p_token: string
         }
         Returns: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
@@ -502,23 +585,33 @@ export type Database = {
       get_match: {
         Args: { p_match_id: string }
         Returns: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
@@ -541,23 +634,33 @@ export type Database = {
           p_wallet: string
         }
         Returns: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
@@ -597,23 +700,33 @@ export type Database = {
       list_my_matches: {
         Args: { p_handle: string }
         Returns: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
@@ -636,23 +749,33 @@ export type Database = {
       list_open_ranked_matches: {
         Args: { p_limit?: number }
         Returns: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
@@ -723,30 +846,175 @@ export type Database = {
         }
         Returns: undefined
       }
-      save_notification_token: {
-        Args: { p_event: string; p_fid: number; p_token: string; p_url: string }
-        Returns: undefined
-      }
-      set_match_paid: {
-        Args: { p_match_id: string; p_role: string }
+      reveal_match_slot: {
+        Args: { p_match_id: string; p_role: string; p_slot: number }
         Returns: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      save_notification_token: {
+        Args: { p_event: string; p_fid: number; p_token: string; p_url: string }
+        Returns: undefined
+      }
+      set_match_arena: {
+        Args: { p_arena: string; p_match_id: string }
+        Returns: {
+          arena: string
+          created_at: string
+          difficulty: number
+          host_deck: Json
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_deck: Json
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          round: number
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_match_loadout: {
+        Args: {
+          p_deck: Json
+          p_fighter_id: string
+          p_match_id: string
+          p_ready: boolean
+          p_role: string
+        }
+        Returns: {
+          arena: string
+          created_at: string
+          difficulty: number
+          host_deck: Json
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_deck: Json
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          round: number
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_match_paid: {
+        Args: { p_match_id: string; p_role: string }
+        Returns: {
+          arena: string
+          created_at: string
+          difficulty: number
+          host_deck: Json
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_deck: Json
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
@@ -763,23 +1031,33 @@ export type Database = {
       set_match_status: {
         Args: { p_match_id: string; p_status: string }
         Returns: {
+          arena: string
           created_at: string
           difficulty: number
+          host_deck: Json
           host_fid: number | null
           host_fighter_id: string
           host_handle: string
           host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
           host_wallet: string | null
           id: string
           invited_fid: number | null
           invited_username: string | null
+          joiner_deck: Json
           joiner_fid: number | null
           joiner_fighter_id: string | null
           joiner_handle: string | null
           joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
           joiner_wallet: string | null
           match_id: string
           mode: string
+          round: number
           stake: number
           staked: boolean
           status: string
