@@ -109,7 +109,7 @@ export async function grantNotificationBonus(input: {
   const { data, error } = await getSupabasePublic().rpc("award_notification_bonus", {
     p_wallet: input.wallet.toLowerCase(),
     p_handle: input.handle,
-    p_fid: input.fid ?? 0,
+    p_fid: (input.fid ?? null) as unknown as number,
   });
   if (error) throw new Error(error.message);
   const row = (data ?? [])[0];
