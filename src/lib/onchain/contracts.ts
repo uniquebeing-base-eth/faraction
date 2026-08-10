@@ -17,6 +17,103 @@ export const REWARD_DISTRIBUTOR_ADDRESS = "0xB2b1831Aea1E318a976751702d37CB9eB08
 export const MATCH_VAULT_ADDRESS = "0x0a7701af00D818bF9F0c89f6971697f69638b142" as const;
 export const PAYMENT_GATEWAY_ADDRESS = "0xbb5858B4465bc9169567a3246b215f0197867574" as const;
 
+/**
+ * Points-based daily $FACTS claim contract on Base. The backend signer
+ * authorises each claim; the contract itself enforces the 24 hour cooldown and
+ * converts Facts Points into $FACTS at its configured rate.
+ */
+export const FACTS_CLAIM_ADDRESS = "0x546186f2e8Efc407Cea08cAd33a55433fD531F8E" as const;
+export const FACTS_CLAIM_SYMBOL = "FACTS" as const;
+
+export const FACTS_CLAIM_ABI = [
+  {
+    type: "function",
+    name: "backendSigner",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
+    name: "calculateReward",
+    stateMutability: "view",
+    inputs: [
+      { name: "tokenSymbol", type: "string" },
+      { name: "userPoints", type: "uint256" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "canClaimToday",
+    stateMutability: "view",
+    inputs: [
+      { name: "user", type: "address" },
+      { name: "tokenSymbol", type: "string" },
+    ],
+    outputs: [{ type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "claimReward",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "tokenSymbol", type: "string" },
+      { name: "userPoints", type: "uint256" },
+      { name: "signature", type: "bytes" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "getContractBalance",
+    stateMutability: "view",
+    inputs: [{ name: "tokenSymbol", type: "string" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getMessageHash",
+    stateMutability: "pure",
+    inputs: [
+      { name: "user", type: "address" },
+      { name: "tokenSymbol", type: "string" },
+      { name: "userPoints", type: "uint256" },
+    ],
+    outputs: [{ type: "bytes32" }],
+  },
+  {
+    type: "function",
+    name: "getTimeUntilNextClaim",
+    stateMutability: "view",
+    inputs: [
+      { name: "user", type: "address" },
+      { name: "tokenSymbol", type: "string" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "totalClaimed",
+    stateMutability: "view",
+    inputs: [
+      { name: "", type: "address" },
+      { name: "", type: "string" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "event",
+    name: "RewardClaimed",
+    inputs: [
+      { indexed: true, name: "user", type: "address" },
+      { indexed: false, name: "tokenSymbol", type: "string" },
+      { indexed: false, name: "amount", type: "uint256" },
+      { indexed: false, name: "timestamp", type: "uint256" },
+    ],
+  },
+] as const;
+
 /** FACTS uses 18 decimals, USDC uses 6. */
 export const FACTS_DECIMALS = 18;
 export const USDC_DECIMALS = 6;
@@ -134,6 +231,16 @@ export const MATCH_VAULT_ABI = [
       { name: "matchId", type: "bytes32" },
       { name: "asset", type: "uint8" },
       { name: "stake", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "settleMatch",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "matchId", type: "bytes32" },
+      { name: "winner", type: "address" },
     ],
     outputs: [],
   },
