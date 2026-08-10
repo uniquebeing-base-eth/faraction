@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_fids: {
+        Row: {
+          created_at: string
+          fid: number
+          label: string | null
+        }
+        Insert: {
+          created_at?: string
+          fid: number
+          label?: string | null
+        }
+        Update: {
+          created_at?: string
+          fid?: number
+          label?: string | null
+        }
+        Relationships: []
+      }
+      app_config: {
+        Row: {
+          created_at: string
+          key: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       daily_claims: {
         Row: {
           amount: number
@@ -40,6 +76,66 @@ export type Database = {
           created_at?: string
           id?: string
           tx_hash?: string | null
+          wallet?: string
+        }
+        Relationships: []
+      }
+      energy_purchases: {
+        Row: {
+          amount_facts: number
+          created_at: string
+          energy: number
+          fighter_id: string
+          id: string
+          item_id: string
+          tx_hash: string
+          wallet: string
+        }
+        Insert: {
+          amount_facts?: number
+          created_at?: string
+          energy: number
+          fighter_id: string
+          id?: string
+          item_id: string
+          tx_hash: string
+          wallet: string
+        }
+        Update: {
+          amount_facts?: number
+          created_at?: string
+          energy?: number
+          fighter_id?: string
+          id?: string
+          item_id?: string
+          tx_hash?: string
+          wallet?: string
+        }
+        Relationships: []
+      }
+      fighter_energy: {
+        Row: {
+          bonus_energy: number
+          created_at: string
+          fighter_id: string
+          id: string
+          updated_at: string
+          wallet: string
+        }
+        Insert: {
+          bonus_energy?: number
+          created_at?: string
+          fighter_id: string
+          id?: string
+          updated_at?: string
+          wallet: string
+        }
+        Update: {
+          bonus_energy?: number
+          created_at?: string
+          fighter_id?: string
+          id?: string
+          updated_at?: string
           wallet?: string
         }
         Relationships: []
@@ -73,11 +169,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         Insert: {
           arena?: string
@@ -107,11 +207,15 @@ export type Database = {
           match_id: string
           mode?: string
           round?: number
+          settle_tx?: string | null
+          settled_at?: string | null
           stake?: number
           staked?: boolean
           status?: string
           token?: string
+          tournament_id?: string | null
           updated_at?: string
+          winner_wallet?: string | null
         }
         Update: {
           arena?: string
@@ -141,11 +245,30 @@ export type Database = {
           match_id?: string
           mode?: string
           round?: number
+          settle_tx?: string | null
+          settled_at?: string | null
           stake?: number
           staked?: boolean
           status?: string
           token?: string
+          tournament_id?: string | null
           updated_at?: string
+          winner_wallet?: string | null
+        }
+        Relationships: []
+      }
+      notification_log: {
+        Row: {
+          created_at: string
+          event_key: string
+        }
+        Insert: {
+          created_at?: string
+          event_key: string
+        }
+        Update: {
+          created_at?: string
+          event_key?: string
         }
         Relationships: []
       }
@@ -320,7 +443,10 @@ export type Database = {
           handle: string | null
           id: string
           losses: number
+          notif_bonus_at: string | null
           pass_expires_at: string | null
+          pfp_url: string | null
+          tp: number
           updated_at: string
           wallet: string
           wins: number
@@ -333,7 +459,10 @@ export type Database = {
           handle?: string | null
           id?: string
           losses?: number
+          notif_bonus_at?: string | null
           pass_expires_at?: string | null
+          pfp_url?: string | null
+          tp?: number
           updated_at?: string
           wallet: string
           wins?: number
@@ -346,7 +475,10 @@ export type Database = {
           handle?: string | null
           id?: string
           losses?: number
+          notif_bonus_at?: string | null
           pass_expires_at?: string | null
+          pfp_url?: string | null
+          tp?: number
           updated_at?: string
           wallet?: string
           wins?: number
@@ -470,6 +602,189 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_participants: {
+        Row: {
+          created_at: string
+          fid: number | null
+          handle: string | null
+          id: string
+          losses: number
+          points: number
+          tournament_id: string
+          updated_at: string
+          wallet: string
+          wins: number
+        }
+        Insert: {
+          created_at?: string
+          fid?: number | null
+          handle?: string | null
+          id?: string
+          losses?: number
+          points?: number
+          tournament_id: string
+          updated_at?: string
+          wallet: string
+          wins?: number
+        }
+        Update: {
+          created_at?: string
+          fid?: number | null
+          handle?: string | null
+          id?: string
+          losses?: number
+          points?: number
+          tournament_id?: string
+          updated_at?: string
+          wallet?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_participants_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_points: {
+        Row: {
+          created_at: string
+          handle: string | null
+          id: string
+          points: number
+          reason: string
+          tournament_id: string
+          wallet: string
+        }
+        Insert: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          points?: number
+          reason?: string
+          tournament_id: string
+          wallet: string
+        }
+        Update: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          points?: number
+          reason?: string
+          tournament_id?: string
+          wallet?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_points_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_results: {
+        Row: {
+          created_at: string
+          handle: string | null
+          id: string
+          points: number
+          prize: number
+          rank: number
+          tournament_id: string
+          wallet: string
+        }
+        Insert: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          points?: number
+          prize?: number
+          rank: number
+          tournament_id: string
+          wallet: string
+        }
+        Update: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          points?: number
+          prize?: number
+          rank?: number
+          tournament_id?: string
+          wallet?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_results_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          created_by_fid: number | null
+          description: string
+          ends_at: string
+          id: string
+          prize_pool: number
+          registration_closes_at: string
+          registration_opens_at: string
+          starts_at: string
+          status: string
+          title: string
+          tp_per_loss: number
+          tp_per_win: number
+          updated_at: string
+          winner_count: number
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          created_by_fid?: number | null
+          description?: string
+          ends_at?: string
+          id?: string
+          prize_pool?: number
+          registration_closes_at?: string
+          registration_opens_at?: string
+          starts_at?: string
+          status?: string
+          title: string
+          tp_per_loss?: number
+          tp_per_win?: number
+          updated_at?: string
+          winner_count?: number
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          created_by_fid?: number | null
+          description?: string
+          ends_at?: string
+          id?: string
+          prize_pool?: number
+          registration_closes_at?: string
+          registration_opens_at?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          tp_per_loss?: number
+          tp_per_win?: number
+          updated_at?: string
+          winner_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -478,6 +793,136 @@ export type Database = {
       activate_season_pass: {
         Args: { p_days: number; p_wallet: string }
         Returns: string
+      }
+      admin_adjust_tournament_points: {
+        Args: {
+          p_admin_key: string
+          p_fid: number
+          p_points: number
+          p_reason: string
+          p_tournament_id: string
+          p_wallet: string
+        }
+        Returns: {
+          created_at: string
+          fid: number | null
+          handle: string | null
+          id: string
+          losses: number
+          points: number
+          tournament_id: string
+          updated_at: string
+          wallet: string
+          wins: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tournament_participants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_list_tournaments: {
+        Args: { p_admin_key: string; p_fid: number }
+        Returns: {
+          banner_url: string | null
+          created_at: string
+          created_by_fid: number | null
+          description: string
+          ends_at: string
+          id: string
+          prize_pool: number
+          registration_closes_at: string
+          registration_opens_at: string
+          starts_at: string
+          status: string
+          title: string
+          tp_per_loss: number
+          tp_per_win: number
+          updated_at: string
+          winner_count: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tournaments"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_set_tournament_status: {
+        Args: {
+          p_admin_key: string
+          p_fid: number
+          p_id: string
+          p_status: string
+        }
+        Returns: {
+          banner_url: string | null
+          created_at: string
+          created_by_fid: number | null
+          description: string
+          ends_at: string
+          id: string
+          prize_pool: number
+          registration_closes_at: string
+          registration_opens_at: string
+          starts_at: string
+          status: string
+          title: string
+          tp_per_loss: number
+          tp_per_win: number
+          updated_at: string
+          winner_count: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tournaments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_upsert_tournament: {
+        Args: {
+          p_admin_key: string
+          p_banner_url: string
+          p_description: string
+          p_ends: string
+          p_fid: number
+          p_id: string
+          p_prize: number
+          p_reg_closes: string
+          p_reg_opens: string
+          p_starts: string
+          p_status: string
+          p_title: string
+          p_tp_loss: number
+          p_tp_win: number
+          p_winner_count: number
+        }
+        Returns: {
+          banner_url: string | null
+          created_at: string
+          created_by_fid: number | null
+          description: string
+          ends_at: string
+          id: string
+          prize_pool: number
+          registration_closes_at: string
+          registration_opens_at: string
+          starts_at: string
+          status: string
+          title: string
+          tp_per_loss: number
+          tp_per_win: number
+          updated_at: string
+          winner_count: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tournaments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       advance_match_round: {
         Args: { p_host_wins: number; p_joiner_wins: number; p_match_id: string }
@@ -509,11 +954,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -522,6 +971,18 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      assert_admin: {
+        Args: { p_admin_key: string; p_fid: number }
+        Returns: undefined
+      }
+      award_notification_bonus: {
+        Args: { p_fid: number; p_handle: string; p_wallet: string }
+        Returns: {
+          awarded: boolean
+          fp: number
+        }[]
+      }
+      claim_notification_slot: { Args: { p_key: string }; Returns: boolean }
       create_match: {
         Args: {
           p_difficulty: number
@@ -565,11 +1026,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -612,11 +1077,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -625,6 +1094,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_player: {
+        Args: { p_wallet: string }
+        Returns: {
+          fp: number
+          handle: string
+          losses: number
+          notif_bonus: boolean
+          tp: number
+          wallet: string
+          wins: number
+        }[]
+      }
+      is_admin_fid: { Args: { p_fid: number }; Returns: boolean }
       join_match: {
         Args: {
           p_fid: number
@@ -661,11 +1143,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -677,6 +1163,17 @@ export type Database = {
       join_staked_match: {
         Args: { p_match_id: string; p_tx_hash: string; p_wallet: string }
         Returns: undefined
+      }
+      leaderboard_global: {
+        Args: { p_limit?: number }
+        Returns: {
+          fp: number
+          handle: string
+          losses: number
+          pfp_url: string
+          wallet: string
+          wins: number
+        }[]
       }
       leaderboard_ranked: {
         Args: { p_limit?: number }
@@ -695,6 +1192,13 @@ export type Database = {
           claim_day: string
           created_at: string
           tx_hash: string
+        }[]
+      }
+      list_fighter_energy: {
+        Args: { p_wallet: string }
+        Returns: {
+          bonus_energy: number
+          fighter_id: string
         }[]
       }
       list_my_matches: {
@@ -727,11 +1231,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -776,11 +1284,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -788,6 +1300,48 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      list_tournaments: {
+        Args: { p_limit?: number }
+        Returns: {
+          banner_url: string | null
+          created_at: string
+          created_by_fid: number | null
+          description: string
+          ends_at: string
+          id: string
+          prize_pool: number
+          registration_closes_at: string
+          registration_opens_at: string
+          starts_at: string
+          status: string
+          title: string
+          tp_per_loss: number
+          tp_per_win: number
+          updated_at: string
+          winner_count: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tournaments"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      record_battle_result: {
+        Args: {
+          p_fp: number
+          p_handle: string
+          p_ranked: boolean
+          p_tournament_id: string
+          p_tp: number
+          p_wallet: string
+          p_won: boolean
+        }
+        Returns: {
+          fp: number
+          tp: number
+        }[]
       }
       record_chain_event: {
         Args: {
@@ -809,6 +1363,17 @@ export type Database = {
           p_wallet: string
         }
         Returns: undefined
+      }
+      record_energy_purchase: {
+        Args: {
+          p_amount: number
+          p_energy: number
+          p_fighter_id: string
+          p_item_id: string
+          p_tx_hash: string
+          p_wallet: string
+        }
+        Returns: number
       }
       record_payment_receipt: {
         Args: {
@@ -876,11 +1441,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -923,11 +1492,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -972,11 +1545,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1015,11 +1592,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1058,11 +1639,15 @@ export type Database = {
           match_id: string
           mode: string
           round: number
+          settle_tx: string | null
+          settled_at: string | null
           stake: number
           staked: boolean
           status: string
           token: string
+          tournament_id: string | null
           updated_at: string
+          winner_wallet: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1070,6 +1655,93 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      settle_match_result: {
+        Args: {
+          p_match_id: string
+          p_settle_tx: string
+          p_winner_wallet: string
+        }
+        Returns: {
+          arena: string
+          created_at: string
+          difficulty: number
+          host_deck: Json
+          host_fid: number | null
+          host_fighter_id: string
+          host_handle: string
+          host_paid: boolean
+          host_ready: boolean
+          host_revealed: number
+          host_round_wins: number
+          host_wallet: string | null
+          id: string
+          invited_fid: number | null
+          invited_username: string | null
+          joiner_deck: Json
+          joiner_fid: number | null
+          joiner_fighter_id: string | null
+          joiner_handle: string | null
+          joiner_paid: boolean
+          joiner_ready: boolean
+          joiner_revealed: number
+          joiner_round_wins: number
+          joiner_wallet: string | null
+          match_id: string
+          mode: string
+          round: number
+          settle_tx: string | null
+          settled_at: string | null
+          stake: number
+          staked: boolean
+          status: string
+          token: string
+          tournament_id: string | null
+          updated_at: string
+          winner_wallet: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      tournament_register: {
+        Args: {
+          p_fid: number
+          p_handle: string
+          p_tournament_id: string
+          p_wallet: string
+        }
+        Returns: {
+          created_at: string
+          fid: number | null
+          handle: string | null
+          id: string
+          losses: number
+          points: number
+          tournament_id: string
+          updated_at: string
+          wallet: string
+          wins: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tournament_participants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      tournament_standings: {
+        Args: { p_limit?: number; p_tournament_id: string }
+        Returns: {
+          handle: string
+          losses: number
+          points: number
+          wallet: string
+          wins: number
+        }[]
       }
       upsert_staked_match: {
         Args: {
