@@ -49,7 +49,7 @@ function Play() {
 
   if (routed === undefined) return null;
   // A 1 vs 1 bout is a real shared battle, not a solo run against the engine.
-  if (routed && routed.mode === "1v1") return <VersusBattle match={routed} />;
+  if (routed && (routed.mode === "1v1" || routed.mode === "ranked")) return <VersusBattle match={routed} />;
   return <SoloBattle />;
 }
 

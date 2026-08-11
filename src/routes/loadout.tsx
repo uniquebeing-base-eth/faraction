@@ -77,7 +77,7 @@ function Loadout() {
         saveActiveMatch(match);
       }
 
-      if (match.mode === "1v1") {
+      if (match.mode === "1v1" || match.mode === "ranked") {
         const role = match.role;
         const row = await setMatchLoadout({
           data: {
@@ -127,7 +127,7 @@ function Loadout() {
     },
     onSuccess: () => {
       const existing = loadActiveMatch();
-      if (existing?.mode === "1v1") return;
+      if (existing?.mode === "1v1" || existing?.mode === "ranked") return;
       navigate({ to: "/play" });
     },
     onError: (e) =>

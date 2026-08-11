@@ -255,7 +255,7 @@ function Lobby() {
     if (!match) return;
     const hostReadyValue = liveRow ? Boolean(liveRow.host_ready) : Boolean(match.hostReady);
     const joinerReadyValue = liveRow ? Boolean(liveRow.joiner_ready) : Boolean(match.joinerReady);
-    if (match.mode === "1v1" && !(hostReadyValue && joinerReadyValue)) {
+    if (match.mode !== "house" && !(hostReadyValue && joinerReadyValue)) {
       setFeeError("Both players must lock their loadout before the match can begin.");
       return;
     }
@@ -263,7 +263,7 @@ function Lobby() {
   };
 
   const bothLoadoutsLocked =
-    match?.mode === "1v1"
+    match?.mode !== "house"
       ? Boolean(
           (liveRow?.host_ready ?? match.hostReady) && (liveRow?.joiner_ready ?? match.joinerReady),
         )
