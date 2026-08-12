@@ -25,6 +25,7 @@ import {
   advanceMatchRound,
   fetchMatch,
   revealMatchSlot,
+  settleStakedMatch,
   updateMatchStatus,
 } from "@/lib/matches.functions";
 import {
@@ -47,6 +48,7 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
   const resolve = useServerFn(fetchMatch);
   const reveal = useServerFn(revealMatchSlot);
   const advance = useServerFn(advanceMatchRound);
+  const settle = useServerFn(settleStakedMatch);
   const setStatus = useServerFn(updateMatchStatus);
 
   const live = useQuery({
@@ -188,11 +190,23 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
     setEnded({ won: iWon, fp: gained, payout });
     if (iWon) sfx.win();
     else sfx.lose();
-    if (isHost) {
+
+    if (match.staked) {
+      const winnerWallet =
+        isHost
+          ? (nextHostWins > nextJoinerWins ? row?.host_wallet : row?.joiner_wallet)
+          : (nextJoinerWins > nextHostWins ? row?.joiner_wallet : row?.host_wallet);
+
+      if (!winnerWallet) {
+        console.error("Could not settle staked match: missing winner wallet on record.");
+      } else {
+        void settle({ data: { matchId: match.id, winnerWallet } }).catch(() => undefined);
+      }
+    } else if (isHost) {
       void setStatus({ data: { matchId: match.id, status: "complete" } }).catch(() => undefined);
     }
     clearActiveMatch();
-  }, [matchOver, isHost, nextHostWins, nextJoinerWins, match, update, setStatus]);
+  }, [matchOver, isHost, nextHostWins, nextJoinerWins, match, row?.host_wallet, row?.joiner_wallet, update, settle, setStatus]);
 
   // Keep the local record fresh so a refresh mid-battle restores the bout.
   useEffect(() => {

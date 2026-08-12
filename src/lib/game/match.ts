@@ -201,11 +201,13 @@ export interface MatchRecord {
   difficulty: number;
   host_handle: string;
   host_fid: number | null;
+  host_wallet?: string | null;
   host_fighter_id: string;
   host_deck?: unknown;
   host_ready?: boolean;
   joiner_handle: string | null;
   joiner_fid: number | null;
+  joiner_wallet?: string | null;
   joiner_fighter_id: string | null;
   joiner_deck?: unknown;
   joiner_ready?: boolean;

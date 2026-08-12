@@ -185,6 +185,54 @@ export const setMatchLoadout = createServerFn({ method: "POST" })
     return await dbSetMatchLoadout(data);
   });
 
+/** Settle a staked match through the backend signer + vault, and only update the DB after the tx succeeds. */
+export const settleStakedMatch = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        matchId: codeSchema,
+        winnerWallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "A valid Base wallet is required"),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { dbGetMatch } = await import("./matches.server");
+    const row = await dbGetMatch(data.matchId);
+    if (!row) throw new Error("Match not found");
+    if (!row.staked) throw new Error("This match is not staked");
+    if (row.settled_at || row.settle_tx) {
+      return row;
+    }
+
+    const { signerWallet } = await import("./signer.server");
+    const { publicClient } = await import("./onchain/wallet");
+    const { MATCH_VAULT_ABI, MATCH_VAULT_ADDRESS } = await import("./onchain/contracts");
+    const { toBytes32, waitForReceiptSoft } = await import("./onchain/actions");
+
+    const { client, account } = signerWallet();
+    const { request } = await publicClient.simulateContract({
+      address: MATCH_VAULT_ADDRESS,
+      abi: MATCH_VAULT_ABI as any,
+      functionName: "settleMatch",
+      args: [toBytes32(row.match_id), data.winnerWallet],
+      account: account.address,
+    });
+    const hash = await client.writeContract({ ...request, chain: client.chain });
+    const { confirmed } = await waitForReceiptSoft(hash, "settleMatch");
+    if (!confirmed) throw new Error("Settlement transaction did not confirm on Base.");
+
+    const { getSupabasePublic } = await import("./supabase-public.server");
+    const supabase = getSupabasePublic();
+    const { error } = await supabase.rpc("settle_match_result", {
+      p_match_id: row.match_id,
+      p_winner_wallet: data.winnerWallet,
+      p_settle_tx: hash,
+    });
+    if (error) throw new Error(`Could not record the settlement: ${error.message}`);
+
+    return { ...row, winner_wallet: data.winnerWallet, settle_tx: hash, status: "complete" };
+  });
+
 /** Cancel or complete a match. */
 export const updateMatchStatus = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
@@ -198,6 +246,10 @@ export const updateMatchStatus = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { dbSetMatchStatus } = await import("./matches.server");
     const row = await dbSetMatchStatus(data.matchId, data.status);
+
+    if (data.status === "complete" && row.staked) {
+      return row;
+    }
 
     // Close the loop: both fighters hear about the result (and their rewards)
     // even if they left the app mid-bout.
@@ -216,56 +268,6 @@ export const updateMatchStatus = createServerFn({ method: "POST" })
           targetUrl: matchUrl(row.match_id),
           notificationId: `${data.status}-${row.match_id}`,
         }).catch((e) => console.error("Match result notification failed", e));
-      }
-    }
-    // If this was a staked match, attempt backend settlement via the vault.
-    if (data.status === "complete" && row.staked) {
-      try {
-        // Prevent duplicate settlement if already settled in DB.
-        if (row.settled_at) {
-          console.log(`Match ${row.match_id} already settled, skipping vault call.`);
-        } else {
-          const { signerWallet } = await import("./signer.server");
-          const { publicClient } = await import("./onchain/wallet");
-          const { MATCH_VAULT_ABI, MATCH_VAULT_ADDRESS } = await import("./onchain/contracts");
-          const { toBytes32, waitForReceiptSoft } = await import("./onchain/actions");
-
-          // Determine recorded winner wallet from the match rows (host vs joiner wins).
-          const hostWins = Number(row.host_round_wins ?? 0);
-          const joinerWins = Number(row.joiner_round_wins ?? 0);
-          const winnerWallet = hostWins > joinerWins ? row.host_wallet : row.joiner_wallet;
-          if (!winnerWallet) throw new Error("Cannot settle: winner wallet not recorded");
-
-          const matchIdBytes = toBytes32(row.match_id);
-
-          const { client, account } = signerWallet();
-
-          // Simulate then send the settleMatch write from the backend signer.
-          const { request } = await publicClient.simulateContract({
-            address: MATCH_VAULT_ADDRESS,
-            abi: MATCH_VAULT_ABI as any,
-            functionName: "settleMatch",
-            args: [matchIdBytes, winnerWallet],
-            account: account.address,
-          });
-          const hash = await client.writeContract({ ...request, chain: client.chain });
-
-          const { confirmed } = await waitForReceiptSoft(hash, "settleMatch");
-          if (!confirmed) throw new Error("Settlement transaction not confirmed yet; aborting DB update.");
-
-          // Persist the settle tx and mark winner/settled in the DB.
-          const { getSupabasePublic } = await import("./supabase-public.server");
-          const supabase = getSupabasePublic();
-          const { error } = await supabase.rpc("settle_match_result", {
-            p_match_id: row.match_id,
-            p_winner_wallet: winnerWallet,
-            p_settle_tx: hash,
-          });
-          if (error) throw error;
-          console.log(`Staked match ${row.match_id} settled onchain: ${hash}`);
-        }
-      } catch (err) {
-        console.error("Staked match settlement failed:", err);
       }
     }
     return row;
