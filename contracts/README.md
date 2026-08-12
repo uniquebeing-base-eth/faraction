@@ -52,7 +52,7 @@ Nothing is ever pushed to users. Every reward path is **claim-only**:
 - Season/daily/campaign FACTS → `FactsRewardDistributor.claim(campaignId)` or
   `claimMany([...])`.
 - Staked match winnings → `StakedMatchVault.claim(asset)`.
-
+signer: 0xad3e2d50c2d1581D60A2b228001eDEE456637233
 The treasury 10% cut on a settled match is the one automatic transfer, sent
 directly to the treasury at settlement.
 
