@@ -48,8 +48,8 @@ async function loadProvider(): Promise<EIP1193Provider | null> {
   if (typeof window === "undefined") return null;
   if (cachedProvider) return cachedProvider;
 
-  // Farcaster mini-app wallet. Loaded from a CDN at runtime so the SDK never
-  // enters the server bundle.
+  // The app intentionally uses the Farcaster mini-app wallet only.
+  // No browser-injected wallet path is supported here.
   try {
     const url = "https://esm.sh/@farcaster/miniapp-sdk@0.3.0";
     const mod = (await import(/* @vite-ignore */ url)) as {
@@ -70,11 +70,6 @@ async function loadProvider(): Promise<EIP1193Provider | null> {
     // Not in a Farcaster client.
   }
 
-  const injected = (window as unknown as { ethereum?: EIP1193Provider }).ethereum;
-  if (injected) {
-    cachedProvider = injected;
-    return injected;
-  }
   return null;
 }
 
@@ -84,9 +79,7 @@ export async function getWalletClient(): Promise<{
 }> {
   const provider = await loadProvider();
   if (!provider) {
-    throw new Error(
-      "No wallet found. Open FarAction in a Farcaster client or install a Base wallet.",
-    );
+    throw new Error("Open FarAction inside Farcaster to use the connected wallet.");
   }
   const accounts = (await provider.request({ method: "eth_requestAccounts" })) as Address[];
   const account = accounts[0];
