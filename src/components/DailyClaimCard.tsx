@@ -1,80 +1,64 @@
 /**
- * Daily FACTS claim, settled onchain.
+ * Daily $FACTS claim, paid for Facts Points.
  *
- * Reads the wallet's claimable balance from the reward distributor, claims it
- * on Base, then records the claim server-side so a wallet can only claim once
- * per UTC day.
+ * The server quotes the payout (500 $FACTS per 1,000 FP) and signs it; the
+ * wallet broadcasts the claim to the points reward contract on Base, and the
+ * confirmed claim is mirrored back into the ledger.
  */
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Gift } from "lucide-react";
-import { formatUnits } from "viem";
+import { Loader2, Gift, Share2 } from "lucide-react";
 import { useWallet } from "@/lib/onchain/wallet";
-import { claimAllRewards, readTotalRewardClaimable } from "@/lib/onchain/actions";
-import { FACTS_DECIMALS } from "@/lib/onchain/contracts";
-import { dailyClaimStatus, recordDailyClaim } from "@/lib/daily.functions";
+import { claimFactsForPoints } from "@/lib/onchain/actions";
+import { factsClaimQuote, recordFactsClaim } from "@/lib/rewards.functions";
 import { pushActivity } from "@/lib/activity";
 import { sfx } from "@/lib/sound";
 import { shareCast } from "@/lib/share";
 import { PROD_ORIGIN } from "@/lib/config";
-import { Share2 } from "lucide-react";
 
-/** 500 FACTS, once every 24 hours. */
-const DAILY_CLAIM_FACTS = 500;
+/** $FACTS paid per 1,000 Facts Points. */
+const FACTS_PER_1000_FP = 500;
 
-function countdown(target: string | null, now: number): string | null {
-  if (!target) return null;
-  const ms = new Date(target).getTime() - now;
-  if (ms <= 0) return null;
-  const h = Math.floor(ms / 3_600_000);
-  const m = Math.floor((ms % 3_600_000) / 60_000);
-  const sec = Math.floor((ms % 60_000) / 1000);
+function countdown(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
 export function DailyClaimCard({ onClaimed }: { onClaimed?: (amount: number) => void }) {
   const { address, connect, connecting } = useWallet();
   const queryClient = useQueryClient();
-  const [now, setNow] = useState(() => Date.now());
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const status = useQuery({
-    queryKey: ["daily-claim", address],
+  const quote = useQuery({
+    queryKey: ["facts-claim-quote", address],
     enabled: Boolean(address),
-    queryFn: () => dailyClaimStatus({ data: { wallet: address! } }),
-  });
-
-  const claimable = useQuery({
-    queryKey: ["reward-claimable", address],
-    enabled: Boolean(address),
-    queryFn: async () => {
-      const { total, campaigns } = await readTotalRewardClaimable(address!);
-      return { total: Number(formatUnits(total, FACTS_DECIMALS)), campaigns: campaigns.length };
-    },
+    refetchInterval: 60_000,
+    queryFn: () => factsClaimQuote({ data: { wallet: address! } }),
   });
 
   const claim = useMutation({
     mutationFn: async () => {
-      const result = await claimAllRewards();
-      return recordDailyClaim({
-        data: {
-          wallet: result.account,
-          amount: result.amount,
-          txHash: result.hash,
-          campaignIds: result.campaigns.map((c) => c.toString()),
-        },
-      });
+      const q = quote.data;
+      if (!q?.signature) throw new Error(q?.reason ?? "This claim is not available yet.");
+      const tx = await claimFactsForPoints({ points: q.points, signature: q.signature });
+      await recordFactsClaim({
+        data: { wallet: tx.account, amount: q.reward, txHash: tx.hash },
+      }).catch(() => undefined);
+      return { amount: q.reward, hash: tx.hash };
     },
     onSuccess: (res) => {
       sfx.coin();
       pushActivity("claim", `Claimed ${Math.round(res.amount).toLocaleString()} FACTS`);
       onClaimed?.(res.amount);
-      queryClient.invalidateQueries({ queryKey: ["daily-claim"] });
-      queryClient.invalidateQueries({ queryKey: ["reward-claimable"] });
+      void queryClient.invalidateQueries({ queryKey: ["facts-claim-quote"] });
     },
   });
 
@@ -91,22 +75,29 @@ export function DailyClaimCard({ onClaimed }: { onClaimed?: (amount: number) => 
     );
   }
 
-  const remaining = countdown(status.data?.nextClaimAt ?? null, now);
-  const onCooldown = Boolean(remaining) || status.data?.canClaim === false;
-  const amount = claimable.data?.total ?? 0;
-  const disabled = claim.isPending || onCooldown || amount <= 0;
+  const q = quote.data;
+  const waiting = (q?.secondsUntilNextClaim ?? 0) > 0;
+  // `tick` keeps the countdown ticking between refetches.
+  const remaining = countdown((q?.secondsUntilNextClaim ?? 0) - (tick % 60));
+  const reward = q?.reward ?? 0;
+  const disabled = claim.isPending || !q?.canClaim || !q?.signature;
 
   return (
     <div className="space-y-2">
       <div className="rounded-lg border border-border/70 bg-card/40 p-3">
-        <p className="label-xs">Daily bounty · {DAILY_CLAIM_FACTS.toLocaleString()} FACTS / 24h</p>
+        <p className="label-xs">
+          Daily bounty · {FACTS_PER_1000_FP} FACTS per 1,000 FP
+        </p>
         <p className="font-display text-xl font-bold text-facts">
-          {claimable.isLoading ? "…" : `${Math.round(amount).toLocaleString()} FACTS`}
+          {quote.isLoading ? "…" : `${Math.round(reward).toLocaleString()} FACTS`}
         </p>
         <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
-          {onCooldown
-            ? `Next claim in ${remaining ?? "00:00:00"} · ${status.data?.streak ?? 1} day streak`
-            : "Paid by the FarAction reward distributor on Base. One claim every 24 hours."}
+          {quote.isLoading
+            ? "Reading your Facts Points…"
+            : waiting
+              ? `Next claim in ${remaining} · ${(q?.points ?? 0).toLocaleString()} FP banked`
+              : (q?.reason ??
+                `${(q?.points ?? 0).toLocaleString()} FP ready to convert. Paid onchain on Base.`)}
         </p>
       </div>
       <button
@@ -120,18 +111,18 @@ export function DailyClaimCard({ onClaimed }: { onClaimed?: (amount: number) => 
         ) : (
           <Gift className="size-4" />
         )}
-        {onCooldown
-          ? `NEXT CLAIM IN ${remaining ?? "00:00:00"}`
-          : amount > 0
-            ? `CLAIM ${Math.round(amount).toLocaleString()} FACTS`
-            : "NO FACTS ALLOCATED YET"}
+        {waiting
+          ? `NEXT CLAIM IN ${remaining}`
+          : reward > 0 && q?.canClaim
+            ? `CLAIM ${Math.round(reward).toLocaleString()} FACTS`
+            : "WIN BATTLES TO EARN FP"}
       </button>
       {claim.isSuccess ? (
         <button
           type="button"
           onClick={() =>
             void shareCast(
-              `Claimed ${Math.round(claim.data.amount).toLocaleString()} $FACTS from the FarAction daily bounty on Base ⚔️`,
+              `Claimed ${Math.round(claim.data.amount).toLocaleString()} $FACTS from my FarAction Facts Points on Base ⚔️`,
               PROD_ORIGIN,
             )
           }
