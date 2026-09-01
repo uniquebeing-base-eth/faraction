@@ -534,3 +534,25 @@ export async function claimAllRewards() {
     amount: Number(total) / 10 ** FACTS_DECIMALS,
   };
 }
+
+/**
+ * Claim the daily $FACTS payout for the wallet's Facts Points.
+ *
+ * The backend signs `getMessageHash(user, "FACTS", points)`; the contract
+ * verifies that signature, enforces its own 24 hour cooldown and transfers the
+ * $FACTS. The signature is never produced in the browser.
+ */
+export async function claimFactsForPoints(options: { points: number; signature: string }) {
+  const { FACTS_CLAIM_ABI, FACTS_CLAIM_ADDRESS, FACTS_CLAIM_SYMBOL } = await import("./contracts");
+  const { account } = await getWalletClient();
+  const hash = await sendWrite({
+    address: FACTS_CLAIM_ADDRESS,
+    abi: FACTS_CLAIM_ABI,
+    functionName: "claimReward",
+    args: [FACTS_CLAIM_SYMBOL, BigInt(Math.max(0, Math.floor(options.points))), options.signature],
+    account,
+    wait: false,
+  });
+  await waitForReceiptSoft(hash, "daily claim");
+  return { hash, account };
+}
