@@ -55,3 +55,24 @@ export const recordBattleOutcome = createServerFn({ method: "POST" })
 
     return { fp: Number(row?.fp ?? 0), tp: Number(row?.tp ?? 0) };
   });
+
+/** Stored record for a wallet — the source of truth for FP, wins and losses. */
+export const fetchPlayerProfile = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { getSupabasePublic } = await import("./supabase-public.server");
+    const { data: rows, error } = await getSupabasePublic().rpc("get_player", {
+      p_wallet: data.wallet.toLowerCase(),
+    });
+    if (error) throw new Error(error.message);
+    const row = (rows ?? [])[0];
+    return {
+      handle: row?.handle ?? "",
+      fp: Number(row?.fp ?? 0),
+      tp: Number(row?.tp ?? 0),
+      wins: Number(row?.wins ?? 0),
+      losses: Number(row?.losses ?? 0),
+    };
+  });

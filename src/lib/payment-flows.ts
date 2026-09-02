@@ -105,3 +105,30 @@ export async function purchaseCard(options: {
   if (!check.verified) throw new Error("The card payment could not be verified onchain.");
   return receipt;
 }
+
+/** Buy a one-off energy boost for a fighter and record it against the wallet. */
+export async function purchaseEnergyBoost(options: {
+  itemId: string;
+  fighterId: string;
+  energy: number;
+  amountFacts: number;
+}) {
+  const { getWalletClient } = await import("@/lib/onchain/wallet");
+  const { recordEnergyPurchase } = await import("@/lib/energy.functions");
+  const { account } = await getWalletClient();
+  const tx = await payWithFacts({
+    sku: `energy:${options.itemId}:${options.fighterId}`,
+    kind: "store",
+    amountFacts: options.amountFacts,
+  });
+  return recordEnergyPurchase({
+    data: {
+      wallet: account,
+      itemId: options.itemId,
+      fighterId: options.fighterId,
+      energy: options.energy,
+      amountFacts: options.amountFacts,
+      txHash: tx.hash,
+    },
+  });
+}
