@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useWallet } from "@/lib/onchain/wallet";
+import { listFighterEnergy } from "@/lib/energy.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
 import { CARDS, CHARACTERS } from "@/lib/game/gameData";
