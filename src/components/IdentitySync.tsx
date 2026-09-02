@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { usePlayer, normalizeHandle } from "@/lib/game/store";
+import { fetchPlayerProfile } from "@/lib/battle.functions";
 import { useFarcasterIdentity } from "@/lib/farcaster/identity";
 import { useWallet, shortAddress } from "@/lib/onchain/wallet";
 
@@ -25,6 +26,28 @@ export function IdentitySync() {
     if (identity?.pfpUrl && identity.pfpUrl !== player.pfpUrl)
       update({ pfpUrl: identity.pfpUrl });
   }, [identity, address, hydrated, player.handle, player.fid, player.pfpUrl, update]);
+
+  useEffect(() => {
+    if (!hydrated || !address) return;
+    let cancelled = false;
+
+    void fetchPlayerProfile({ data: { wallet: address } })
+      .then((profile) => {
+        if (cancelled) return;
+        update({
+          fp: profile.fp,
+          wins: profile.wins,
+          losses: profile.losses,
+        });
+      })
+      .catch((error: unknown) => {
+        console.error("Player profile hydration failed", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [address, hydrated, update]);
 
   return null;
 }

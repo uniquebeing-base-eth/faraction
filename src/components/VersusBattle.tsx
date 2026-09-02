@@ -21,6 +21,7 @@ import { BattleCard, Combatant, withSeededRandom } from "@/components/BattleStag
 import { sfx } from "@/lib/sound";
 import { battleShareImage, shareCast } from "@/lib/share";
 import { matchUrl } from "@/lib/config";
+import { recordBattleOutcome } from "@/lib/battle.functions";
 import {
   advanceMatchRound,
   fetchMatch,
