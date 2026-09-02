@@ -4,7 +4,7 @@ import { CARDS, CHARACTERS, randomFact, type Card, type Character } from "@/lib/
 import { generateAIOrder, resolveRound, type SlotResult } from "@/lib/game/combatEngine";
 import { usePlayer, displayHandle } from "@/lib/game/store";
 import { useWallet } from "@/lib/onchain/wallet";
-import { recordRankedResult } from "@/lib/rank.functions";
+import { recordBattleOutcome } from "@/lib/battle.functions";
 import { battleShareImage, shareCast } from "@/lib/share";
 import { PROD_ORIGIN } from "@/lib/config";
 import {
