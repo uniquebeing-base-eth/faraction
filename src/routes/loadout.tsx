@@ -46,7 +46,16 @@ function Loadout() {
   const { player, update } = usePlayer();
   const navigate = useNavigate();
   const fighter = CHARACTERS.find((c) => c.id === player.fighterId) ?? CHARACTERS[0]!;
-  const energyPool = calcEnergyPool(fighter);
+  const { address } = useWallet();
+  // Energy boosts bought in the Black Market permanently widen the pool.
+  const boosts = useQuery({
+    queryKey: ["fighter-energy", address],
+    enabled: Boolean(address),
+    queryFn: () => listFighterEnergy({ data: { wallet: address! } }),
+  });
+  const bonusEnergy =
+    boosts.data?.find((b) => b.fighterId === fighter.id)?.bonusEnergy ?? 0;
+  const energyPool = calcEnergyPool(fighter) + bonusEnergy;
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
   const [sequence, setSequence] = useState<string[]>([]);
   const [feeError, setFeeError] = useState("");
