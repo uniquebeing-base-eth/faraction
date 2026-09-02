@@ -196,14 +196,17 @@ function SoloBattle() {
           losses: p.losses + (matchWon ? 0 : 1),
           houseStreak: matchWon ? p.houseStreak + 1 : 0,
         }));
-        // Only Ranked FP reaches the Season leaderboard.
-        if (ranked && address) {
-          void recordRankedResult({
+        // Every bout is written to the database, so FP, wins and streaks
+        // survive a reload and the daily $FACTS claim can see the points.
+        if (address) {
+          void recordBattleOutcome({
             data: {
               wallet: address,
               handle: displayHandle(player),
               fp: fpGained,
               won: matchWon,
+              ranked,
+              tp: 0,
             },
           }).catch(() => undefined);
         }
