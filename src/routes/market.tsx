@@ -31,6 +31,8 @@ function Market() {
   const wallet = useTokenBalances();
   const [msg, setMsg] = useState<string | null>(null);
   const [buying, setBuying] = useState<string | null>(null);
+  const [tab, setTab] = useState<"cards" | "energy">("cards");
+  const [energyFighter, setEnergyFighter] = useState(player.fighterId || CHARACTERS[0]!.id);
   const premium = CARDS.filter((c) => c.isPremium);
   const owned = premium.filter((c) => player.unlockedCards.includes(c.id)).length;
 
