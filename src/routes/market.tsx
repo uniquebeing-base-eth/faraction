@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { Screen } from "@/components/Screen";
 import { CardTile } from "@/components/CardTile";
-import { CARDS, type Card } from "@/lib/game/gameData";
+import { CARDS, CHARACTERS, type Card } from "@/lib/game/gameData";
+import { calcEnergyPool } from "@/lib/game/combatEngine";
+import { ENERGY_ITEMS, type EnergyItem } from "@/lib/game/energy";
+import { listFighterEnergy } from "@/lib/energy.functions";
 import { usePlayer , displayHandle } from "@/lib/game/store";
 import { useTokenBalances } from "@/lib/onchain/balances";
-import { purchaseCard } from "@/lib/payment-flows";
+import { purchaseCard, purchaseEnergyBoost } from "@/lib/payment-flows";
 
 export const Route = createFileRoute("/market")({
   head: () => ({
@@ -242,6 +245,7 @@ function Market() {
           );
         })}
       </div>
+      )}
     </Screen>
   );
 }
