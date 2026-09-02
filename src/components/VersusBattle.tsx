@@ -205,8 +205,29 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
     } else if (isHost) {
       void setStatus({ data: { matchId: match.id, status: "complete" } }).catch(() => undefined);
     }
+
+    // Persist the result so FP, wins and losses survive a reload and the daily
+    // $FACTS claim can read the points.
+    const myWallet = (isHost ? row?.host_wallet : row?.joiner_wallet) ?? null;
+    if (myWallet) {
+      void recordBattleOutcome({
+        data: {
+          wallet: myWallet,
+          handle: displayHandle(player),
+          fp: gained,
+          won: iWon,
+          ranked: !match.staked && match.mode === "ranked",
+          tp: 0,
+          matchId: match.id,
+          fid: player.fid ?? null,
+          opponentHandle: isHost ? (row?.joiner_handle ?? null) : (row?.host_handle ?? null),
+          opponentFid: isHost ? (row?.joiner_fid ?? null) : (row?.host_fid ?? null),
+          payout,
+        },
+      }).catch(() => undefined);
+    }
     clearActiveMatch();
-  }, [matchOver, isHost, nextHostWins, nextJoinerWins, match, row?.host_wallet, row?.joiner_wallet, update, settle, setStatus]);
+  }, [matchOver, isHost, nextHostWins, nextJoinerWins, match, row, update, settle, setStatus, player]);
 
   // Keep the local record fresh so a refresh mid-battle restores the bout.
   useEffect(() => {
