@@ -57,6 +57,38 @@ function Market() {
     },
   });
 
+  const address = wallet.address ?? null;
+  const energy = useQuery({
+    queryKey: ["fighter-energy", address],
+    enabled: Boolean(address),
+    queryFn: () => listFighterEnergy({ data: { wallet: address! } }),
+  });
+  const bonusFor = (id: string) =>
+    energy.data?.find((b) => b.fighterId === id)?.bonusEnergy ?? 0;
+
+  const buyEnergy = useMutation({
+    mutationFn: async (item: EnergyItem) =>
+      purchaseEnergyBoost({
+        itemId: item.id,
+        fighterId: energyFighter,
+        energy: item.energy,
+        amountFacts: item.price,
+      }),
+    onSuccess: (res) => {
+      setMsg(`+${res.bonusEnergy} total bonus energy on this fighter.`);
+      void energy.refetch();
+      void wallet.refetch();
+      setBuying(null);
+    },
+    onError: (e) => {
+      setMsg(e instanceof Error ? e.message : "The purchase could not be completed.");
+      setBuying(null);
+    },
+  });
+
+  const selectedFighter =
+    CHARACTERS.find((c) => c.id === energyFighter) ?? CHARACTERS[0]!;
+
   return (
     <Screen
       title="Black Market"
