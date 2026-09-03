@@ -15,6 +15,10 @@ export interface PlayerState {
   rankedFp: number;
   wins: number;
   losses: number;
+  /** FP/results earned before a wallet was connected — flushed to the server later. */
+  pendingFp: number;
+  pendingWins: number;
+  pendingLosses: number;
   houseStreak: number;
   dailyClaimedOn: string | null;
   seasonPass: {
@@ -41,6 +45,9 @@ export const DEFAULT_STATE: PlayerState = {
   rankedFp: 0,
   wins: 0,
   losses: 0,
+  pendingFp: 0,
+  pendingWins: 0,
+  pendingLosses: 0,
   houseStreak: 0,
   dailyClaimedOn: null,
   seasonPass: null,

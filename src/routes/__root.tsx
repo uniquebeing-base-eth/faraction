@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Stage, STAGE_PREPAINT } from "@/components/Stage";
 import { MiniAppReady } from "@/components/MiniAppReady";
 import { IdentitySync } from "@/components/IdentitySync";
+import { Toaster } from "@/components/ui/sonner";
 
 
 function NotFoundComponent() {
@@ -139,6 +140,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <MiniAppReady />
       <IdentitySync />
+      <Toaster position="top-center" />
 
       <Stage>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

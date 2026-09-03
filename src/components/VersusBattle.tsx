@@ -6,7 +6,7 @@
  * (round, reveal counters, round wins) lives in the database so neither player
  * is quietly playing against an AI.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -17,6 +17,7 @@ import { usePlayer, displayHandle } from "@/lib/game/store";
 import { TopBar } from "@/components/TopBar";
 import { GameWorld } from "@/components/GameWorld";
 import { ArenaStage } from "@/components/ArenaStage";
+import { ClaimWinnings } from "@/components/ClaimWinnings";
 import { BattleCard, Combatant, withSeededRandom } from "@/components/BattleStage";
 import { sfx } from "@/lib/sound";
 import { battleShareImage, shareCast } from "@/lib/share";
@@ -59,6 +60,9 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
   });
   const row = live.data as unknown as MatchRecord | null | undefined;
 
+  const [settling, setSettling] = useState(false);
+  const [settleError, setSettleError] = useState<string | null>(null);
+  const [winnerWallet, setWinnerWallet] = useState<string | null>(null);
   const [ended, setEnded] = useState<null | { won: boolean; fp: number; payout: string | null }>(
     null,
   );
@@ -169,6 +173,22 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
   }, [roundOver, matchOver, isHost, advance, match.id, nextHostWins, nextJoinerWins, live]);
 
   // Settle the bout once, locally, for whichever side is looking at it.
+  const runSettlement = useCallback(
+    async (winnerWallet: string) => {
+      setSettleError(null);
+      setSettling(true);
+      try {
+        await settle({ data: { matchId: match.id, winnerWallet } });
+      } catch (error) {
+        console.error("Staked settlement failed", error);
+        setSettleError(error instanceof Error ? error.message : "Settlement failed");
+      } finally {
+        setSettling(false);
+      }
+    },
+    [settle, match.id],
+  );
+
   useEffect(() => {
     if (!matchOver || settled.current) return;
     settled.current = true;
@@ -179,7 +199,7 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
     if (match.staked) {
       const { winnerTake } = potFor(match);
       payout = iWon
-        ? `Pot claimed · ${formatAmount(winnerTake, match.token)}`
+        ? `Pot won · ${formatAmount(winnerTake, match.token)}`
         : `Stake lost · ${formatAmount(match.stake, match.token)}`;
     }
     update((p) => ({
@@ -193,15 +213,13 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
     else sfx.lose();
 
     if (match.staked) {
-      const winnerWallet =
-        isHost
-          ? (nextHostWins > nextJoinerWins ? row?.host_wallet : row?.joiner_wallet)
-          : (nextJoinerWins > nextHostWins ? row?.joiner_wallet : row?.host_wallet);
-
-      if (!winnerWallet) {
-        console.error("Could not settle staked match: missing winner wallet on record.");
+      const winner =
+        nextHostWins > nextJoinerWins ? row?.host_wallet : row?.joiner_wallet;
+      setWinnerWallet(winner ?? null);
+      if (!winner) {
+        setSettleError("Missing winner wallet on the match record.");
       } else {
-        void settle({ data: { matchId: match.id, winnerWallet } }).catch(() => undefined);
+        void runSettlement(winner);
       }
     } else if (isHost) {
       void setStatus({ data: { matchId: match.id, status: "complete" } }).catch(() => undefined);
@@ -225,10 +243,37 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
           opponentFid: isHost ? (row?.joiner_fid ?? null) : (row?.host_fid ?? null),
           payout,
         },
-      }).catch(() => undefined);
+      })
+        .then((totals) => update({ fp: totals.fp, wins: totals.wins, losses: totals.losses }))
+        .catch((error: unknown) => {
+          console.error("Could not save the battle result", error);
+          update((p) => ({
+            pendingFp: p.pendingFp + gained,
+            pendingWins: p.pendingWins + (iWon ? 1 : 0),
+            pendingLosses: p.pendingLosses + (iWon ? 0 : 1),
+          }));
+        });
+    } else {
+      update((p) => ({
+        pendingFp: p.pendingFp + gained,
+        pendingWins: p.pendingWins + (iWon ? 1 : 0),
+        pendingLosses: p.pendingLosses + (iWon ? 0 : 1),
+      }));
     }
     clearActiveMatch();
-  }, [matchOver, isHost, nextHostWins, nextJoinerWins, match, row, update, settle, setStatus, player]);
+  }, [
+    matchOver,
+    isHost,
+    nextHostWins,
+    nextJoinerWins,
+    match,
+    row,
+    update,
+    runSettlement,
+    setStatus,
+    player,
+  ]);
+
 
   // Keep the local record fresh so a refresh mid-battle restores the bout.
   useEffect(() => {
@@ -371,6 +416,27 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
                 : `@${theirName.replace(/^@/, "")} took the bout`}
             </p>
             {ended.payout ? <p className="label-xs text-accent">{ended.payout}</p> : null}
+            {match.staked ? (
+              <div className="space-y-2 pt-2">
+                {settling ? (
+                  <p className="label-xs text-muted-foreground">Settling the pot onchain…</p>
+                ) : null}
+                {settleError ? (
+                  <>
+                    <p className="text-sm text-destructive">{settleError}</p>
+                    <button
+                      type="button"
+                      className="fa-btn-ghost w-full"
+                      disabled={settling || !winnerWallet}
+                      onClick={() => winnerWallet && void runSettlement(winnerWallet)}
+                    >
+                      Retry settlement
+                    </button>
+                  </>
+                ) : null}
+                <ClaimWinnings asset={match.token === "USDC" ? "USDC" : "FACTS"} />
+              </div>
+            ) : null}
             <p className="label-xs pt-3">Base fact unlocked</p>
             <p className="text-sm leading-relaxed text-muted-foreground">{fact}</p>
             <button

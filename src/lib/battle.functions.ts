@@ -53,8 +53,55 @@ export const recordBattleOutcome = createServerFn({ method: "POST" })
       }).catch((e) => console.error("Result notification failed", e));
     }
 
-    return { fp: Number(row?.fp ?? 0), tp: Number(row?.tp ?? 0) };
+    const totals = await readPlayerTotals(data.wallet);
+    return { fp: Number(row?.fp ?? totals.fp), tp: Number(row?.tp ?? totals.tp), wins: totals.wins, losses: totals.losses };
   });
+
+/** Push locally accumulated FP/wins/losses (earned before a wallet was connected). */
+export const syncPlayerStats = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        handle: z.string().max(64).default(""),
+        fid: z.number().int().positive().nullish(),
+        fp: z.number().int().min(0).max(10_000_000),
+        wins: z.number().int().min(0).max(100_000),
+        losses: z.number().int().min(0).max(100_000),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { getSupabasePublic } = await import("./supabase-public.server");
+    const { data: rows, error } = await getSupabasePublic().rpc("sync_player_stats", {
+      p_wallet: data.wallet.toLowerCase(),
+      p_handle: data.handle,
+      p_fid: (data.fid ?? null) as unknown as number,
+      p_fp: data.fp,
+      p_wins: data.wins,
+      p_losses: data.losses,
+    });
+    if (error) throw new Error(error.message);
+    const row = (rows ?? [])[0];
+    return {
+      fp: Number(row?.fp ?? 0),
+      tp: Number(row?.tp ?? 0),
+      wins: Number(row?.wins ?? 0),
+      losses: Number(row?.losses ?? 0),
+    };
+  });
+
+async function readPlayerTotals(wallet: string) {
+  const { getSupabasePublic } = await import("./supabase-public.server");
+  const { data } = await getSupabasePublic().rpc("get_player", { p_wallet: wallet.toLowerCase() });
+  const row = (data ?? [])[0];
+  return {
+    fp: Number(row?.fp ?? 0),
+    tp: Number(row?.tp ?? 0),
+    wins: Number(row?.wins ?? 0),
+    losses: Number(row?.losses ?? 0),
+  };
+}
 
 /** Stored record for a wallet — the source of truth for FP, wins and losses. */
 export const fetchPlayerProfile = createServerFn({ method: "POST" })
