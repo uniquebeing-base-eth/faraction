@@ -6,7 +6,7 @@
  * (round, reveal counters, round wins) lives in the database so neither player
  * is quietly playing against an AI.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -17,6 +17,7 @@ import { usePlayer, displayHandle } from "@/lib/game/store";
 import { TopBar } from "@/components/TopBar";
 import { GameWorld } from "@/components/GameWorld";
 import { ArenaStage } from "@/components/ArenaStage";
+import { ClaimWinnings } from "@/components/ClaimWinnings";
 import { BattleCard, Combatant, withSeededRandom } from "@/components/BattleStage";
 import { sfx } from "@/lib/sound";
 import { battleShareImage, shareCast } from "@/lib/share";
@@ -59,6 +60,9 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
   });
   const row = live.data as unknown as MatchRecord | null | undefined;
 
+  const [settling, setSettling] = useState(false);
+  const [settleError, setSettleError] = useState<string | null>(null);
+  const [winnerWallet, setWinnerWallet] = useState<string | null>(null);
   const [ended, setEnded] = useState<null | { won: boolean; fp: number; payout: string | null }>(
     null,
   );
@@ -412,6 +416,27 @@ export function VersusBattle({ match }: { match: ActiveMatch }) {
                 : `@${theirName.replace(/^@/, "")} took the bout`}
             </p>
             {ended.payout ? <p className="label-xs text-accent">{ended.payout}</p> : null}
+            {match.staked ? (
+              <div className="space-y-2 pt-2">
+                {settling ? (
+                  <p className="label-xs text-muted-foreground">Settling the pot onchain…</p>
+                ) : null}
+                {settleError ? (
+                  <>
+                    <p className="text-sm text-destructive">{settleError}</p>
+                    <button
+                      type="button"
+                      className="fa-btn-ghost w-full"
+                      disabled={settling || !winnerWallet}
+                      onClick={() => winnerWallet && void runSettlement(winnerWallet)}
+                    >
+                      Retry settlement
+                    </button>
+                  </>
+                ) : null}
+                <ClaimWinnings asset={match.token === "USDC" ? "USDC" : "FACTS"} />
+              </div>
+            ) : null}
             <p className="label-xs pt-3">Base fact unlocked</p>
             <p className="text-sm leading-relaxed text-muted-foreground">{fact}</p>
             <button
