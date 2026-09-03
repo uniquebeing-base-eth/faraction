@@ -195,6 +195,11 @@ function SoloBattle() {
           wins: p.wins + (matchWon ? 1 : 0),
           losses: p.losses + (matchWon ? 0 : 1),
           houseStreak: matchWon ? p.houseStreak + 1 : 0,
+          // Buffer the result when there is no wallet yet, so the points are
+          // pushed to the server the moment one connects.
+          pendingFp: address ? p.pendingFp : p.pendingFp + fpGained,
+          pendingWins: address ? p.pendingWins : p.pendingWins + (matchWon ? 1 : 0),
+          pendingLosses: address ? p.pendingLosses : p.pendingLosses + (matchWon ? 0 : 1),
         }));
         // Every bout is written to the database, so FP, wins and streaks
         // survive a reload and the daily $FACTS claim can see the points.
@@ -208,8 +213,18 @@ function SoloBattle() {
               ranked,
               tp: 0,
             },
-          }).catch(() => undefined);
+          })
+            .then((totals) => update({ fp: totals.fp, wins: totals.wins, losses: totals.losses }))
+            .catch((error: unknown) => {
+              console.error("Could not save the battle result", error);
+              update((p) => ({
+                pendingFp: p.pendingFp + fpGained,
+                pendingWins: p.pendingWins + (matchWon ? 1 : 0),
+                pendingLosses: p.pendingLosses + (matchWon ? 0 : 1),
+              }));
+            });
         }
+
         clearActiveMatch();
         setPhase("match-end");
         if (matchWon) sfx.win();
