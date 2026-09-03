@@ -1707,6 +1707,22 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      sync_player_stats: {
+        Args: {
+          p_fid: number
+          p_fp: number
+          p_handle: string
+          p_losses: number
+          p_wallet: string
+          p_wins: number
+        }
+        Returns: {
+          fp: number
+          losses: number
+          tp: number
+          wins: number
+        }[]
+      }
       tournament_register: {
         Args: {
           p_fid: number
