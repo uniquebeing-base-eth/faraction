@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { usePlayer, normalizeHandle } from "@/lib/game/store";
 import { fetchPlayerProfile, syncPlayerStats } from "@/lib/battle.functions";
+import { listCardUnlocks } from "@/lib/payments.functions";
 import { useFarcasterIdentity } from "@/lib/farcaster/identity";
 import { useWallet, shortAddress } from "@/lib/onchain/wallet";
 
