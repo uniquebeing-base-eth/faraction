@@ -8,9 +8,10 @@
 import { createWalletClient, http, type Account, type WalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
+import { readEnv } from "./runtime-env";
 
 function readKey(): `0x${string}` {
-  const raw = process.env["BACKEND_SIGNER_KEY"];
+  const raw = readEnv("BACKEND_SIGNER_KEY", "VITE_BACKEND_SIGNER_KEY");
   if (!raw) throw new Error("The backend signer is not configured.");
   const trimmed = raw.trim();
   return (trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`) as `0x${string}`;
@@ -22,7 +23,7 @@ export function signerAccount(): Account {
 
 export function signerWallet(): { client: WalletClient; account: Account } {
   const account = signerAccount();
-  const rpc = process.env["BASE_RPC_URL"] ?? "https://mainnet.base.org";
+  const rpc = readEnv("BASE_RPC_URL") ?? "https://mainnet.base.org";
   const client = createWalletClient({ account, chain: base, transport: http(rpc) });
   return { client, account };
 }

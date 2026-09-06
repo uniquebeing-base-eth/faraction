@@ -6,11 +6,12 @@
  * them (via Neynar, with a direct-token fallback) to notify players.
  */
 import { getSupabasePublic } from "./supabase-public.server";
+import { readEnv } from "./runtime-env";
 
 const NEYNAR_BASE = "https://api.neynar.com/v2/farcaster";
 
 function apiKey() {
-  return process.env["NEYNAR_SECRET_KEY"] ?? process.env["NEYNAR_API_KEY"] ?? null;
+  return readEnv("NEYNAR_SECRET_KEY", "NEYNAR_API_KEY") ?? null;
 }
 
 export type MiniAppEventName =

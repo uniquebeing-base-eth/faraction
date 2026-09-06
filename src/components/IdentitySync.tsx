@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { usePlayer, normalizeHandle } from "@/lib/game/store";
 import { fetchPlayerProfile, syncPlayerStats } from "@/lib/battle.functions";
+import { listCardUnlocks } from "@/lib/payments.functions";
 import { useFarcasterIdentity } from "@/lib/farcaster/identity";
 import { useWallet, shortAddress } from "@/lib/onchain/wallet";
 
@@ -65,6 +66,21 @@ export function IdentitySync() {
 
       const profile = await fetchPlayerProfile({ data: { wallet: address } });
       if (cancelled) return;
+      // Anything the device knows but the server doesn't is pushed up, so the
+      // saved total always matches what the player can see.
+      const missing = Math.max(0, Math.round(player.fp) - profile.fp);
+      if (missing > 0) {
+        try {
+          const totals = await syncPlayerStats({
+            data: { wallet: address, handle, fid: fid ?? null, fp: missing, wins: 0, losses: 0 },
+          });
+          if (cancelled) return;
+          update({ fp: totals.fp, wins: totals.wins, losses: totals.losses });
+          return;
+        } catch (error) {
+          console.error("Could not reconcile Facts Points", error);
+        }
+      }
       update((p) => ({
         fp: Math.max(profile.fp, p.fp),
         wins: Math.max(profile.wins, p.wins),
@@ -88,8 +104,28 @@ export function IdentitySync() {
     player.pendingLosses,
     player.handle,
     player.fid,
+    player.fp,
   ]);
 
+  // Cards bought with FACTS are restored from the stored receipts, so a
+  // purchase survives reloads and new devices.
+  useEffect(() => {
+    if (!hydrated || !address) return;
+    let cancelled = false;
+    void listCardUnlocks({ data: { wallet: address } })
+      .then((ids) => {
+        if (cancelled || ids.length === 0) return;
+        update((p) => ({
+          unlockedCards: Array.from(new Set([...p.unlockedCards, ...ids])),
+        }));
+      })
+      .catch((error: unknown) => {
+        console.error("Could not restore purchased cards", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [address, hydrated, update]);
 
   return null;
 }

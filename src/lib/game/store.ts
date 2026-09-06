@@ -62,13 +62,27 @@ const listeners = new Set<(s: PlayerState) => void>();
 
 function read(): PlayerState {
   if (typeof window === "undefined") return DEFAULT_STATE;
+  const parse = (key: string): Partial<PlayerState> => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw ? (JSON.parse(raw) as Partial<PlayerState>) : {};
+    } catch {
+      return {};
+    }
+  };
   try {
-    // Clear the pre-balance-rework record so no demo figures survive.
-    window.localStorage.removeItem("faraction:player:v1");
-    window.localStorage.removeItem("faraction:player:v2");
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return DEFAULT_STATE;
-    return { ...DEFAULT_STATE, ...(JSON.parse(raw) as Partial<PlayerState>) };
+    // Older records are merged, never discarded: points and unlocked cards a
+    // player already earned must survive every version bump.
+    const old = { ...parse("faraction:player:v1"), ...parse("faraction:player:v2") };
+    const cur = parse(KEY);
+    const merged: PlayerState = { ...DEFAULT_STATE, ...old, ...cur };
+    merged.fp = Math.max(Number(old.fp ?? 0), Number(cur.fp ?? 0), 0);
+    merged.wins = Math.max(Number(old.wins ?? 0), Number(cur.wins ?? 0), 0);
+    merged.losses = Math.max(Number(old.losses ?? 0), Number(cur.losses ?? 0), 0);
+    merged.unlockedCards = Array.from(
+      new Set([...(old.unlockedCards ?? []), ...(cur.unlockedCards ?? [])]),
+    );
+    return merged;
   } catch {
     return DEFAULT_STATE;
   }

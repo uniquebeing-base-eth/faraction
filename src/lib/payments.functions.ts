@@ -125,3 +125,15 @@ export const payCardUnlock = createServerFn({ method: "POST" })
       txHash: data.txHash,
     });
   });
+
+/** Every premium card this wallet has paid for, straight from stored receipts. */
+export const listCardUnlocks = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ wallet }).parse(d))
+  .handler(async ({ data }) => {
+    const { getSupabasePublic } = await import("./supabase-public.server");
+    const { data: rows, error } = await getSupabasePublic().rpc("list_card_unlocks", {
+      p_wallet: data.wallet.toLowerCase(),
+    });
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r) => String(r.card_id)).filter(Boolean);
+  });
