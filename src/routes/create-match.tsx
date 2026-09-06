@@ -52,6 +52,7 @@ import { promptAddMiniApp } from "@/lib/miniapp";
 import { sfx } from "@/lib/sound";
 import { ArenaStage } from "@/components/ArenaStage";
 import { ARENAS, getArena, type ArenaId } from "@/lib/game/arenas";
+import { ArenaPicker } from "@/components/ArenaPicker";
 
 const ARENA_KEY = "faraction:arena";
 

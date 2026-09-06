@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 
 import emblem from "@/assets/img/arena-selector-emblem.png";
 import { ARENAS, getArena, type ArenaId } from "@/lib/game/arenas";
-import { sfx } from "@/lib/sfx";
+import { sfx } from "@/lib/sound";
 
 interface Props {
   arena: ArenaId;
