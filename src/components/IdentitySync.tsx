@@ -65,6 +65,21 @@ export function IdentitySync() {
 
       const profile = await fetchPlayerProfile({ data: { wallet: address } });
       if (cancelled) return;
+      // Anything the device knows but the server doesn't is pushed up, so the
+      // saved total always matches what the player can see.
+      const missing = Math.max(0, Math.round(player.fp) - profile.fp);
+      if (missing > 0) {
+        try {
+          const totals = await syncPlayerStats({
+            data: { wallet: address, handle, fid: fid ?? null, fp: missing, wins: 0, losses: 0 },
+          });
+          if (cancelled) return;
+          update({ fp: totals.fp, wins: totals.wins, losses: totals.losses });
+          return;
+        } catch (error) {
+          console.error("Could not reconcile Facts Points", error);
+        }
+      }
       update((p) => ({
         fp: Math.max(profile.fp, p.fp),
         wins: Math.max(profile.wins, p.wins),
