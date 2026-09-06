@@ -3,6 +3,7 @@
  * to the browser.
  */
 import { getSupabasePublic } from "./supabase-public.server";
+import { readEnv } from "./runtime-env";
 
 export interface FarcasterUser {
   fid: number;
@@ -75,7 +76,7 @@ function normalize(u: NeynarUser, players: Map<string, PlayerRow>): FarcasterUse
 }
 
 export async function searchFarcasterUsers(query: string, limit = 8): Promise<FarcasterUser[]> {
-  const apiKey = process.env["NEYNAR_SECRET_KEY"] ?? process.env["NEYNAR_API_KEY"];
+  const apiKey = readEnv("NEYNAR_SECRET_KEY", "NEYNAR_API_KEY");
   const players = await fetchPlayerDirectory();
   const needle = stripAt(query).toLowerCase();
 
