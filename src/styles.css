@@ -584,3 +584,25 @@
     linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%);
   mask-composite: intersect;
 }
+
+/* ------------------------------------------------------------------ *
+ * Electric arena — image-first selection stage + sliding tray.
+ * ------------------------------------------------------------------ */
+@utility tray-scroll {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility tray-item {
+  scroll-snap-align: center;
+}
+
+@utility stage-glow {
+  box-shadow:
+    inset 0 0 60px -10px color-mix(in oklab, var(--color-accent) 45%, transparent),
+    0 18px 60px -24px color-mix(in oklab, var(--color-accent) 80%, transparent);
+}
