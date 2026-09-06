@@ -10,7 +10,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
 
 function readKey(): `0x${string}` {
-  const raw = process.env["BACKEND_SIGNER_KEY"];
+  const raw = readEnv("BACKEND_SIGNER_KEY", "VITE_BACKEND_SIGNER_KEY");
   if (!raw) throw new Error("The backend signer is not configured.");
   const trimmed = raw.trim();
   return (trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`) as `0x${string}`;
