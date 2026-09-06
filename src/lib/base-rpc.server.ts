@@ -15,6 +15,7 @@
  */
 import { createPublicClient, fallback, http, type PublicClient } from "viem";
 import { base } from "viem/chains";
+import { readEnv } from "./runtime-env";
 
 /** Public Base nodes, used only as fallbacks behind a keyed endpoint. */
 const PUBLIC_BASE_RPCS = ["https://base.llamarpc.com", "https://mainnet.base.org"];
@@ -26,7 +27,7 @@ export function baseRpc(): PublicClient {
 
   // Read env inside the call, never at module scope — injection happens at
   // request time in the worker runtime.
-  const keyed = process.env["BASE_RPC_URL"];
+  const keyed = readEnv("BASE_RPC_URL");
   const urls = [keyed, ...PUBLIC_BASE_RPCS].filter(Boolean) as string[];
 
   cached = createPublicClient({
