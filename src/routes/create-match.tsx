@@ -495,24 +495,8 @@ function CreateMatch() {
           </div>
         </div>
 
-        <div>
-          <p className="label-xs">Arena</p>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {ARENAS.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => setArenaChoice(a.id)}
-                className={`rounded-lg border p-2.5 text-left transition-transform hover:-translate-y-0.5 ${
-                  arena === a.id ? "border-accent bg-accent/10 glow" : "border-border/70 bg-card/40"
-                }`}
-              >
-                <p className="font-display text-xs font-bold">{a.name}</p>
-                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{a.blurb}</p>
-              </button>
-            ))}
-          </div>
-        </div>
+        <ArenaPicker arena={arena} onSelect={setArenaChoice} />
+
 
         {passLocked ? (
           <div className="flex items-center gap-3 rounded-lg border border-facts/50 bg-facts/10 p-3">
