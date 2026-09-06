@@ -103,8 +103,28 @@ export function IdentitySync() {
     player.pendingLosses,
     player.handle,
     player.fid,
+    player.fp,
   ]);
 
+  // Cards bought with FACTS are restored from the stored receipts, so a
+  // purchase survives reloads and new devices.
+  useEffect(() => {
+    if (!hydrated || !address) return;
+    let cancelled = false;
+    void listCardUnlocks({ data: { wallet: address } })
+      .then((ids) => {
+        if (cancelled || ids.length === 0) return;
+        update((p) => ({
+          unlockedCards: Array.from(new Set([...p.unlockedCards, ...ids])),
+        }));
+      })
+      .catch((error: unknown) => {
+        console.error("Could not restore purchased cards", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [address, hydrated, update]);
 
   return null;
 }
