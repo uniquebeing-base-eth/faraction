@@ -1185,6 +1185,14 @@ export type Database = {
           wins: number
         }[]
       }
+      list_card_unlocks: {
+        Args: { p_wallet: string }
+        Returns: {
+          card_id: string
+          created_at: string
+          tx_hash: string
+        }[]
+      }
       list_daily_claims: {
         Args: { p_wallet: string }
         Returns: {
