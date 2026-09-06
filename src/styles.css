@@ -91,8 +91,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 15.5px;
+    font-weight: 700;
     line-height: 1.5;
     overscroll-behavior: none;
   }
@@ -108,17 +108,20 @@
   select,
   .text-xs,
   .text-sm {
-    font-weight: 600;
+    font-weight: 700;
   }
 
   h1,
   h2,
   h3,
+  h4,
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    font-weight: 800;
+    letter-spacing: 0.03em;
   }
 }
+
 
 @utility panel {
   background-image: var(--gradient-panel);
