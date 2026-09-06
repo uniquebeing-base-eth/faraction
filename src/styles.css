@@ -40,40 +40,42 @@
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.16 0.045 264);
-  --foreground: oklch(0.97 0.01 250);
-  --card: oklch(0.21 0.05 264);
-  --card-foreground: oklch(0.97 0.01 250);
-  --popover: oklch(0.19 0.048 264);
-  --popover-foreground: oklch(0.97 0.01 250);
-  --primary: oklch(0.55 0.24 264);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.28 0.05 264);
-  --secondary-foreground: oklch(0.97 0.01 250);
-  --muted: oklch(0.26 0.04 264);
-  --muted-foreground: oklch(0.7 0.03 258);
-  --accent: oklch(0.72 0.17 195);
-  --accent-foreground: oklch(0.16 0.045 264);
-  --destructive: oklch(0.62 0.22 25);
+  /* Electric arena: deep midnight stage, cyan key light, acid green + hot pink. */
+  --background: oklch(0.14 0.05 268);
+  --foreground: oklch(0.98 0.01 250);
+  --card: oklch(0.2 0.06 268);
+  --card-foreground: oklch(0.98 0.01 250);
+  --popover: oklch(0.17 0.055 268);
+  --popover-foreground: oklch(0.98 0.01 250);
+  --primary: oklch(0.79 0.16 216);
+  --primary-foreground: oklch(0.14 0.05 268);
+  --secondary: oklch(0.27 0.06 268);
+  --secondary-foreground: oklch(0.98 0.01 250);
+  --muted: oklch(0.25 0.05 268);
+  --muted-foreground: oklch(0.78 0.03 250);
+  --accent: oklch(0.79 0.16 216);
+  --accent-foreground: oklch(0.14 0.05 268);
+  --destructive: oklch(0.66 0.23 12);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.32 0.05 264);
-  --input: oklch(0.32 0.05 264);
-  --ring: oklch(0.55 0.24 264);
-  --facts: oklch(0.82 0.19 145);
-  --usdc: oklch(0.72 0.16 235);
-  --strike: oklch(0.72 0.19 45);
-  --defense: oklch(0.72 0.16 235);
-  --control: oklch(0.68 0.22 305);
+  --border: oklch(0.35 0.07 268);
+  --input: oklch(0.35 0.07 268);
+  --ring: oklch(0.79 0.16 216);
+  --facts: oklch(0.87 0.22 137);
+  --usdc: oklch(0.79 0.16 216);
+  --strike: oklch(0.66 0.23 12);
+  --defense: oklch(0.79 0.16 216);
+  --control: oklch(0.72 0.22 305);
 
-  --gradient-base: linear-gradient(135deg, oklch(0.55 0.24 264), oklch(0.72 0.17 195));
+  --gradient-base: linear-gradient(135deg, oklch(0.79 0.16 216), oklch(0.87 0.22 137));
   --gradient-panel: linear-gradient(
     160deg,
     color-mix(in oklab, var(--card) 92%, transparent),
     color-mix(in oklab, var(--background) 88%, transparent)
   );
-  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--primary) 45%, transparent),
-    0 12px 40px -12px color-mix(in oklab, var(--primary) 60%, transparent);
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent),
+    0 12px 40px -12px color-mix(in oklab, var(--accent) 70%, transparent);
 }
+
 
 @layer base {
   * {
