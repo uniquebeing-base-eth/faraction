@@ -15,7 +15,7 @@ import { Stage, STAGE_PREPAINT } from "@/components/Stage";
 import { MiniAppReady } from "@/components/MiniAppReady";
 import { IdentitySync } from "@/components/IdentitySync";
 import { Toaster } from "@/components/ui/sonner";
-
+import { music, hydrateMute, isMuted } from "@/lib/sound";
 
 function NotFoundComponent() {
   return (
@@ -135,6 +135,24 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    hydrateMute();
+    const start = () => {
+      if (!isMuted()) music.start();
+    };
+
+    start();
+    window.addEventListener("pointerdown", start, { once: true });
+    window.addEventListener("keydown", start, { once: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+      music.stop();
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
