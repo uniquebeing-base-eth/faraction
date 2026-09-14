@@ -15,6 +15,7 @@ import { pushActivity } from "@/lib/activity";
 import { sfx } from "@/lib/sound";
 import { shareCast } from "@/lib/share";
 import { PROD_ORIGIN } from "@/lib/config";
+import { usePlayer } from "@/lib/game/store";
 
 /** $FACTS paid per 1,000 Facts Points. */
 const FACTS_PER_1000_FP = 500;
@@ -29,6 +30,7 @@ function countdown(seconds: number): string {
 
 export function DailyClaimCard({ onClaimed }: { onClaimed?: (amount: number) => void }) {
   const { address, connect, connecting } = useWallet();
+  const { player } = usePlayer();
   const queryClient = useQueryClient();
   const [tick, setTick] = useState(0);
 
@@ -38,7 +40,7 @@ export function DailyClaimCard({ onClaimed }: { onClaimed?: (amount: number) => 
   }, []);
 
   const quote = useQuery({
-    queryKey: ["facts-claim-quote", address],
+    queryKey: ["facts-claim-quote", address, player.fp],
     enabled: Boolean(address),
     refetchInterval: 60_000,
     queryFn: () => factsClaimQuote({ data: { wallet: address! } }),
@@ -76,6 +78,7 @@ export function DailyClaimCard({ onClaimed }: { onClaimed?: (amount: number) => 
   }
 
   const q = quote.data;
+  const pointsForDisplay = Math.max(player.fp, q?.points ?? 0);
   const waiting = (q?.secondsUntilNextClaim ?? 0) > 0;
   // `tick` keeps the countdown ticking between refetches.
   const remaining = countdown((q?.secondsUntilNextClaim ?? 0) - (tick % 60));
@@ -95,9 +98,9 @@ export function DailyClaimCard({ onClaimed }: { onClaimed?: (amount: number) => 
           {quote.isLoading
             ? "Reading your Facts Points…"
             : waiting
-              ? `Next claim in ${remaining} · ${(q?.points ?? 0).toLocaleString()} FP banked`
+              ? `Next claim in ${remaining} · ${pointsForDisplay.toLocaleString()} FP banked`
               : (q?.reason ??
-                `${(q?.points ?? 0).toLocaleString()} FP ready to convert. Paid onchain on Base.`)}
+                `${pointsForDisplay.toLocaleString()} FP ready to convert. Paid onchain on Base.`)}
         </p>
       </div>
       <button
