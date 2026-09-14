@@ -12,6 +12,8 @@ import {
   LogIn,
   Home,
   Settings,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePlayer, passIsActive, displayHandle } from "@/lib/game/store";
@@ -250,6 +252,49 @@ function Landing() {
                 <Swords className="size-4" />
                 ENTER THE ARENA
               </Link>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Link to="/join-match" className="inline-flex items-center gap-2 rounded-full border border-cyan-400/60 bg-cyan-500/10 px-3 py-2 text-[10px] font-display uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.16)]">
+                <LogIn className="size-3.5" />
+                Join Match
+              </Link>
+              <Link to="/season-pass" className="inline-flex items-center gap-2 rounded-full border border-violet-400/60 bg-violet-500/10 px-3 py-2 text-[10px] font-display uppercase tracking-[0.18em] text-violet-100 shadow-[0_0_18px_rgba(168,85,247,0.18)]">
+                <ShieldCheck className="size-3.5" />
+                Season Pass
+              </Link>
+            </div>
+
+            <div className="mt-5 grid max-w-[500px] grid-cols-3 gap-2">
+              {[
+                {
+                  label: "House streak",
+                  value: `${player.houseStreak}/5`,
+                  hint: "verified boss run",
+                  icon: Crown,
+                },
+                {
+                  label: "Verified wins",
+                  value: String(player.wins),
+                  hint: "arena results",
+                  icon: ShieldCheck,
+                },
+                {
+                  label: "Prize pool",
+                  value: formatFacts(season.rewardPool),
+                  hint: "season reward",
+                  icon: Sparkles,
+                },
+              ].map(({ label, value, hint, icon: Icon }) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-[rgba(10,12,18,0.62)] p-2.5">
+                  <div className="flex items-center justify-between gap-2 text-white/55">
+                    <span className="font-display text-[9px] uppercase tracking-[0.18em]">{label}</span>
+                    <Icon className="size-3.5 text-fuchsia-200" />
+                  </div>
+                  <div className="mt-2 font-display text-[20px] leading-none tracking-[-0.06em] text-white">{value}</div>
+                  <div className="mt-1 text-[8px] uppercase tracking-[0.18em] text-white/45">{hint}</div>
+                </div>
+              ))}
             </div>
           </div>
 
