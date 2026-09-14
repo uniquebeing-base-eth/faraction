@@ -28,7 +28,7 @@ export const Route = createFileRoute("/invite/$matchId")({
           kind: "challenge",
           matchId: params.matchId,
           mode: "1v1",
-          season: "Genesis: The Awakening",
+          season: "Season 2 • The Rise of Junkies",
         }),
         buttonTitle: "Accept the challenge",
       }),

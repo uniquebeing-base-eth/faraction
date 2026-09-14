@@ -224,7 +224,7 @@ function Lobby() {
       hostHandle: match.hostHandle,
       opponentHandle: match.joinerHandle ?? invited ?? match.invitedUsername ?? match.hostHandle,
       mode: modeLabel(match.mode),
-      season: "Genesis: The Awakening",
+      season: "Season 2 • The Rise of Junkies",
     });
     void shareCast(text, link, preview);
   };

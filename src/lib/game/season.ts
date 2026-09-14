@@ -20,20 +20,20 @@ export interface SeasonConfig {
   rewardPool: number;
 }
 
-/** Season 1 launch config. */
+/** Season 2 launch config. */
 export const SEASON_1: SeasonConfig = {
-  number: 1,
-  name: "Season 1 • Genesis: The Awakening",
-  shortName: "Season 1 · Genesis",
+  number: 2,
+  name: "Season 2 • The Rise of Junkies",
+  shortName: "Season 2 · The Rise of Junkies",
   // Launch anchor. The admin console can re-anchor or roll a new season.
-  startedAt: Date.UTC(2026, 7, 5, 0, 0, 0),
+  startedAt: Date.UTC(2026, 8, 5, 0, 0, 0),
   durationDays: 15,
   rewardPool: 100_000_000,
 };
 
 /**
  * Leaderboard payout curve — top 25, weighted heavily toward the top ranks.
- * Sums to the full 100,000,000 FACTS Season 1 pool.
+ * Sums to the full 100,000,000 FACTS Season 2 pool.
  */
 export const LEADERBOARD_REWARDS: number[] = [
   20_000_000, 15_000_000, 10_000_000, 7_500_000, 6_000_000, 4_500_000, 4_000_000, 3_500_000,

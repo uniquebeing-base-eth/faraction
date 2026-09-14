@@ -98,8 +98,8 @@ const FEATURED: { id: string; art: string; name: string; tag: string; alt: strin
     id: "squad",
     art: squadGenesisAsset,
     name: "THE SQUAD",
-    tag: "Season 1 · Genesis roster",
-    alt: "The FarAction Genesis squad standing together in the arena",
+    tag: "Season 2 · The Rise of Junkies roster",
+    alt: "The FarAction squad standing together in the arena",
   },
   ...CHARACTERS.map((c) => ({
     id: c.id,
@@ -123,7 +123,7 @@ const STATIONS = [
   {
     to: "/leaderboard",
     label: "Leaderboard",
-    note: "Season 1 · Genesis standings",
+    note: "Season 2 · Rise of Junkies standings",
     Icon: Trophy,
     tint: "text-facts",
   },

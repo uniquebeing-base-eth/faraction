@@ -57,7 +57,7 @@ function Admin() {
             </p>
           </div>
           <button type="button" onClick={resetToDefault} className="fa-btn-ghost w-full">
-            <RotateCcw className="size-4" /> Reset to Season 1
+            <RotateCcw className="size-4" /> Reset to Season 2
           </button>
         </div>
       }

@@ -34,6 +34,7 @@ function Profile() {
   const { player } = usePlayer();
   const wallet = useTokenBalances();
   const fighter = CHARACTERS.find((c) => c.id === player.fighterId) ?? CHARACTERS[0]!;
+  const fpReadyForClaim = player.fp >= 1000;
 
   return (
     <Screen
@@ -95,8 +96,8 @@ function Profile() {
 
       <p className="mt-3 text-[11px] leading-snug text-muted-foreground">
         Battles pay Facts Points (FP). Only FP earned in Ranked matches counts toward the Season
-        leaderboard. $FACTS itself is claimed once every 24 hours from the reward distributor on
-        Base.
+        leaderboard. The $FACTS daily claim requires at least 1,000 FP and is paid onchain on Base.
+        {fpReadyForClaim ? " Your wallet is eligible to claim." : " Keep fighting to reach the 1,000 FP minimum."}
       </p>
 
       <p className="label-xs mt-5">Base codex · {BASE_FACTS.length} facts</p>

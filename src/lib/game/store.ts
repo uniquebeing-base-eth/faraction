@@ -142,6 +142,10 @@ export function totalFp(p: PlayerState): number {
   return p.fp;
 }
 
+export function isHouseStreakVerified(p: PlayerState): boolean {
+  return p.houseStreak >= 5;
+}
+
 export function passIsActive(p: PlayerState): boolean {
   if (!p.seasonPass) return false;
   return Date.now() - p.seasonPass.activatedAt < planDays(p.seasonPass.plan) * 86_400_000;

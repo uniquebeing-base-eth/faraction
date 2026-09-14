@@ -97,7 +97,7 @@ function card(context: SharePreviewContext) {
 
   const host = (context.hostHandle ?? "alice").replace(/^@/, "");
   const opponent = (context.opponentHandle ?? "bob").replace(/^@/, "");
-  const kicker = context.season ?? "Genesis: The Awakening";
+  const kicker = context.season ?? "Season 2 • The Rise of Junkies";
   const mode = context.mode ?? "1v1";
   return {
     type: "div",

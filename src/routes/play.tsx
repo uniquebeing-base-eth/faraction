@@ -194,7 +194,11 @@ function SoloBattle() {
           rankedFp: p.rankedFp + (ranked ? fpGained : 0),
           wins: p.wins + (matchWon ? 1 : 0),
           losses: p.losses + (matchWon ? 0 : 1),
-          houseStreak: matchWon ? p.houseStreak + 1 : 0,
+          houseStreak: matchWon
+            ? Math.min(5, p.houseStreak + 1)
+            : p.houseStreak >= 5
+              ? 5
+              : 0,
           // Buffer the result when there is no wallet yet, so the points are
           // pushed to the server the moment one connects.
           pendingFp: address ? p.pendingFp : p.pendingFp + fpGained,

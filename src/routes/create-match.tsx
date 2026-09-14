@@ -211,7 +211,7 @@ function CreateMatch() {
           hostHandle: displayHandle(player),
           ...(opponent ? { opponentHandle: opponent.username } : {}),
           mode: modeLabel(mode),
-          season: "Genesis: The Awakening",
+          season: "Season 2 • The Rise of Junkies",
         });
         void shareCast(sent.castText, sent.inviteUrl, preview);
       }
@@ -357,7 +357,7 @@ function CreateMatch() {
                   hostHandle: displayHandle(player),
                   ...(opponent ? { opponentHandle: opponent.username } : to.trim() ? { opponentHandle: to.trim() } : {}),
                   mode: modeLabel(mode),
-                  season: "Genesis: The Awakening",
+                  season: "Season 2 • The Rise of Junkies",
                 });
                 void shareCast(
                   `${to}FarAction ${modeLabel(mode)} open — code ${created.id}. Tap in and take me on ⚔️`,

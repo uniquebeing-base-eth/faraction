@@ -22,12 +22,12 @@ export const Route = createFileRoute("/leaderboard")({
       {
         name: "description",
         content:
-          "Season 1 • Genesis: The Awakening standings. Top 25 share the 100,000,000 $FACTS reward pool.",
+          "Season 2 • The Rise of Junkies standings. Top 25 share the 100,000,000 $FACTS reward pool.",
       },
       { property: "og:title", content: "Leaderboard — FarAction" },
       {
         property: "og:description",
-        content: "Top 25 FarAction fighters share the 100,000,000 $FACTS Season 1 reward pool.",
+        content: "Top 25 FarAction fighters share the 100,000,000 $FACTS Season 2 reward pool.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -84,7 +84,7 @@ function Leaderboard() {
     <Screen
       title="Leaderboard"
       eyebrow={`Station · ${season.shortName}`}
-      heading={status.ended ? "Season 1 · Final Ranks" : "Season 1 · Genesis Ranks"}
+      heading={status.ended ? "Season 2 · Final Ranks" : "Season 2 · The Rise of Junkies Ranks"}
       blurb={`Top ${REWARD_RANKS} fighters share the ${season.rewardPool.toLocaleString()} $FACTS reward pool. Rewards are weighted — #1 takes 20,000,000 FACTS. ${
         status.ended
           ? "The season has closed: standings are locked and rewards are claimable."

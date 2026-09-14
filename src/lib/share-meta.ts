@@ -104,13 +104,13 @@ export function buildShareCardSvg(context: SharePreviewContext = {}): string {
   const winner = normalizeHandle(context.winnerHandle, "alice");
   const loser = normalizeHandle(context.loserHandle, "bob");
   const matchId = context.matchId ? context.matchId.toUpperCase() : "FAR12345";
-  const seasonLabel = context.season ?? "Genesis: The Awakening";
+  const seasonLabel = context.season ?? "Season 2 • The Rise of Junkies";
   const reward = formatReward(context.reward);
   const mode = context.mode ?? "1v1";
 
   let title = "@alice vs @bob";
   let subtitle = "FarAction 1v1";
-  let kicker = "Genesis: The Awakening";
+  let kicker = "Season 2 • The Rise of Junkies";
 
   if (context.kind === "challenge") {
     title = `@${host} vs @${opponent}`;

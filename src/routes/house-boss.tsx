@@ -3,7 +3,7 @@ import { Crown, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { listHouseWinners } from "@/lib/chain.functions";
 import { Screen } from "@/components/Screen";
-import { usePlayer } from "@/lib/game/store";
+import { isHouseStreakVerified, usePlayer } from "@/lib/game/store";
 
 export const Route = createFileRoute("/house-boss")({
   head: () => ({
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/house-boss")({
       {
         name: "description",
         content:
-          "Clear the 5/5 House streak on Base and climb toward the 100,000,000 $FACTS Season 1 reward pool.",
+          "Clear the 5/5 House streak on Base and climb toward the 100,000,000 $FACTS Season 2 reward pool.",
       },
       { property: "og:title", content: "House Boss Challenge — FarAction" },
       { property: "og:description", content: "Beat the House AI 5 times in a row to claim USDC." },
@@ -30,12 +30,13 @@ function HouseBoss() {
     queryFn: () => listHouseWinners(),
   });
   const rows = winners.data ?? [];
+  const verified = isHouseStreakVerified(player);
   return (
     <Screen
       title="House Boss Event"
-      eyebrow="Season 1 • Genesis: The Awakening"
+      eyebrow="Season 2 • The Rise of Junkies"
       heading="House Boss Challenge"
-      blurb="Beat the House AI through a full 5/5 Upper Chamber streak. Clear the final mirror fight, get your verified winner code, and climb the Season 1 • Genesis: The Awakening leaderboard — the top 25 share the 100,000,000 $FACTS reward pool."
+      blurb="Beat the House AI through a full 5/5 Upper Chamber streak. Clear the final mirror fight, get your verified winner code, and climb the Season 2 • The Rise of Junkies leaderboard — the top 25 share the 100,000,000 $FACTS reward pool."
       aside={
         <div className="space-y-2">
           <div className="grid grid-cols-3 gap-2 text-center">
@@ -74,8 +75,9 @@ function HouseBoss() {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        You only qualify if you beat the full 5/5 streak, including the final mirror fight against
-        your own fighter.
+        {verified
+          ? "Verified House win — this 5/5 streak is locked and persists across reloads."
+          : "You only qualify if you beat the full 5/5 streak, including the final mirror fight against your own fighter."}
       </p>
 
       <p className="label-xs mt-5">Recent verified winners</p>

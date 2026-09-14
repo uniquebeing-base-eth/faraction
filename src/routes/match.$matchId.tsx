@@ -26,7 +26,7 @@ export const Route = createFileRoute("/match/$matchId")({
           kind: "match",
           matchId: params.matchId,
           mode: "1v1",
-          season: "Genesis: The Awakening",
+          season: "Season 2 • The Rise of Junkies",
         }),
         buttonTitle: "Enter the bout",
       }),

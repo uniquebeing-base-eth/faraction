@@ -18,7 +18,7 @@ export interface PassPlan {
 }
 
 export const PASS_PLANS: PassPlan[] = [
-  { id: "15d", priceUsdc: 0.25, days: 15, label: "15 DAYS", note: "Full Season 1" },
+  { id: "15d", priceUsdc: 0.25, days: 15, label: "15 DAYS", note: "Full Season 2" },
   { id: "30d", priceUsdc: 0.45, days: 30, label: "30 DAYS", note: "Best value", popular: true },
   { id: "50d", priceUsdc: 1, days: 50, label: "50 DAYS", note: "Long haul" },
 ];
