@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Loader2, Sparkles, Zap } from "lucide-react";
 import { Screen } from "@/components/Screen";
@@ -38,8 +38,20 @@ function Market() {
   const [featured, setFeatured] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [energyFighter, setEnergyFighter] = useState(player.fighterId || CHARACTERS[0]!.id);
+  const cardsTrayRef = useRef<HTMLDivElement | null>(null);
+  const energyTrayRef = useRef<HTMLDivElement | null>(null);
   const premium = CARDS.filter((c) => c.isPremium);
   const owned = premium.filter((c) => player.unlockedCards.includes(c.id)).length;
+
+  const scrollTray = (
+    trayRef: { current: HTMLDivElement | null },
+    direction: "prev" | "next",
+  ) => {
+    const tray = trayRef.current;
+    if (!tray) return;
+    const offset = Math.max(tray.clientWidth * 0.72, 220);
+    tray.scrollBy({ left: direction === "next" ? offset : -offset, behavior: "smooth" });
+  };
 
   useEffect(() => {
     if (premium.length < 2) return;
@@ -254,7 +266,7 @@ function Market() {
         </div>
 
         {tab === "energy" ? (
-          <div className="fa-scroll flex-1 overflow-y-auto pr-1">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <p className="text-xs leading-snug text-slate-300">
               Energy boosts are one-off purchases that permanently raise a single fighter&apos;s
               energy pool, so it can hold higher-cost cards.
@@ -280,11 +292,37 @@ function Market() {
               {selectedFighter.name} · base {calcEnergyPool(selectedFighter)} energy ·{" "}
               {bonusFor(selectedFighter.id)} bonus
             </p>
-            <div className="mt-3 grid grid-cols-5 gap-3">
+
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <p className="font-display text-[10px] uppercase tracking-[0.18em] text-slate-300">Boost pack</p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Previous energy boost"
+                  onClick={() => scrollTray(energyTrayRef, "prev")}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/20 text-slate-100 transition-transform hover:scale-105"
+                >
+                  <ArrowLeft className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next energy boost"
+                  onClick={() => scrollTray(energyTrayRef, "next")}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/20 text-slate-100 transition-transform hover:scale-105"
+                >
+                  <ArrowRight className="size-3.5" />
+                </button>
+              </div>
+            </div>
+
+            <div
+              ref={energyTrayRef}
+              className="tray-scroll mt-3 flex min-h-0 gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
               {ENERGY_ITEMS.map((item) => {
                 const pending = buying === item.id && buyEnergy.isPending;
                 return (
-                  <div key={item.id} className="space-y-1.5">
+                  <div key={item.id} className="w-[150px] shrink-0 snap-start space-y-1.5 rounded-[20px] border border-white/10 bg-white/3 p-2.5">
                     <img
                       src={item.image}
                       alt={`${item.name} — +${item.energy} energy`}
@@ -325,9 +363,32 @@ function Market() {
             </div>
           </div>
         ) : (
-          <div className="fa-scroll flex-1 overflow-y-auto pr-1">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <p className="font-display text-[10px] uppercase tracking-[0.18em] text-slate-300">Featured drops</p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Previous premium card"
+                  onClick={() => scrollTray(cardsTrayRef, "prev")}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/20 text-slate-100 transition-transform hover:scale-105"
+                >
+                  <ArrowLeft className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next premium card"
+                  onClick={() => scrollTray(cardsTrayRef, "next")}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/20 text-slate-100 transition-transform hover:scale-105"
+                >
+                  <ArrowRight className="size-3.5" />
+                </button>
+              </div>
+            </div>
+
             <div
-              className="tray-scroll flex gap-3 overflow-x-auto pb-2"
+              ref={cardsTrayRef}
+              className="tray-scroll flex min-h-0 gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
               onTouchStart={(event) => setTouchStartX(event.touches[0]?.clientX ?? null)}
               onTouchEnd={(event) => {
                 if (touchStartX === null) return;
@@ -337,56 +398,54 @@ function Market() {
                 setTouchStartX(null);
               }}
             >
-              <div className="flex gap-3">
-                {premium.map((card, index) => {
-                  const isOwned = player.unlockedCards.includes(card.id);
-                  const isFeatured = index === featured;
-                  const pending = buying === card.id && buy.isPending;
-                  return (
-                    <div
-                      key={card.id}
-                      className={`w-[240px] shrink-0 space-y-2 rounded-[26px] border p-2.5 transition-all duration-300 ${
-                        isFeatured
-                          ? "border-fuchsia-300 bg-fuchsia-500/10 shadow-[0_0_22px_rgba(192,114,255,0.2)]"
-                          : "border-white/10 bg-white/3"
-                      }`}
+              {premium.map((card, index) => {
+                const isOwned = player.unlockedCards.includes(card.id);
+                const isFeatured = index === featured;
+                const pending = buying === card.id && buy.isPending;
+                return (
+                  <div
+                    key={card.id}
+                    className={`w-[240px] shrink-0 snap-start space-y-2 rounded-[26px] border p-2.5 transition-all duration-300 ${
+                      isFeatured
+                        ? "border-fuchsia-300 bg-fuchsia-500/10 shadow-[0_0_22px_rgba(192,114,255,0.2)]"
+                        : "border-white/10 bg-white/3"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setFeatured(index)}
+                      className="block w-full text-left"
                     >
-                      <button
-                        type="button"
-                        onClick={() => setFeatured(index)}
-                        className="block w-full text-left"
-                      >
-                        <CardTile card={card} selected={isOwned || isFeatured} compact />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isOwned || buy.isPending}
-                        onClick={async () => {
-                          setMsg(null);
-                          if (!wallet.connected) {
-                            try {
-                              await wallet.connect();
-                            } catch {
-                              setMsg("Connect a Base wallet to buy cards.");
-                              return;
-                            }
-                          }
-                          if (wallet.facts < (card.price ?? 0)) {
-                            setMsg(`Not enough FACTS in your wallet for ${card.name}.`);
+                      <CardTile card={card} selected={isOwned || isFeatured} compact />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isOwned || buy.isPending}
+                      onClick={async () => {
+                        setMsg(null);
+                        if (!wallet.connected) {
+                          try {
+                            await wallet.connect();
+                          } catch {
+                            setMsg("Connect a Base wallet to buy cards.");
                             return;
                           }
-                          setBuying(card.id);
-                          buy.mutate(card);
-                        }}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-fuchsia-400/50 bg-fuchsia-500/10 py-2 font-display text-[10px] uppercase tracking-[0.14em] text-fuchsia-200 disabled:opacity-40"
-                      >
-                        {pending ? <Loader2 className="size-3 animate-spin" /> : <ArrowRight className="size-3" />}
-                        {isOwned ? "Owned" : `${(card.price ?? 0).toLocaleString()} FACTS`}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
+                        }
+                        if (wallet.facts < (card.price ?? 0)) {
+                          setMsg(`Not enough FACTS in your wallet for ${card.name}.`);
+                          return;
+                        }
+                        setBuying(card.id);
+                        buy.mutate(card);
+                      }}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-fuchsia-400/50 bg-fuchsia-500/10 py-2 font-display text-[10px] uppercase tracking-[0.14em] text-fuchsia-200 disabled:opacity-40"
+                    >
+                      {pending ? <Loader2 className="size-3 animate-spin" /> : <ArrowRight className="size-3" />}
+                      {isOwned ? "Owned" : `${(card.price ?? 0).toLocaleString()} FACTS`}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
