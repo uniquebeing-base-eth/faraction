@@ -150,7 +150,7 @@ function Market() {
         </div>
       }
     >
-      <div className="flex h-full flex-col gap-4">
+      <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-2">
         <div className="rounded-[26px] border border-fuchsia-400/25 bg-[linear-gradient(180deg,rgba(29,17,41,0.82),rgba(9,12,19,0.9))] p-4 shadow-[0_0_28px_rgba(168,85,247,0.14)]">
           <div className="flex items-center justify-between gap-3">
             <div>

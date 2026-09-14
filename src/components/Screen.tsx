@@ -90,7 +90,7 @@ export function Screen({
               ) : null}
               {aside ? <div className="mt-5 min-h-0 flex-1">{aside}</div> : null}
             </section>
-            <section className="panel min-h-0 overflow-hidden p-5 shadow-[0_0_0_1px_rgba(192,114,255,0.15),0_22px_60px_rgba(80,25,110,0.3)]">{children}</section>
+            <section className="panel min-h-0 overflow-y-auto p-5 shadow-[0_0_0_1px_rgba(192,114,255,0.15),0_22px_60px_rgba(80,25,110,0.3)]">{children}</section>
           </div>
         </div>
       </div>
