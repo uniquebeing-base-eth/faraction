@@ -587,10 +587,12 @@
 }
 
 @utility fa-scroll {
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--primary) 55%, transparent) transparent;
   overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 @utility fa-pedestal {

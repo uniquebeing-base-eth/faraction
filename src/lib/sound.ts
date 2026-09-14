@@ -56,13 +56,22 @@ let musicTimer: number | null = null;
 let musicGain: GainNode | null = null;
 let musicStarted = false;
 
-function playDrone({ ac, freq, gain, type = "triangle", startAt, dur = 0.6 }: {
+function playDrone({
+  ac,
+  freq,
+  gain,
+  type = "triangle",
+  startAt,
+  dur = 0.6,
+  out = ac.destination,
+}: {
   ac: AudioContext;
   freq: number;
   gain: number;
   type?: OscillatorType;
   startAt: number;
   dur?: number;
+  out?: AudioNode;
 }) {
   const osc = ac.createOscillator();
   const amp = ac.createGain();
@@ -74,12 +83,12 @@ function playDrone({ ac, freq, gain, type = "triangle", startAt, dur = 0.6 }: {
   amp.gain.setValueAtTime(0.0001, startAt);
   amp.gain.exponentialRampToValueAtTime(gain, startAt + 0.08);
   amp.gain.exponentialRampToValueAtTime(0.0001, startAt + dur);
-  osc.connect(filter).connect(amp).connect(ac.destination);
+  osc.connect(filter).connect(amp).connect(out);
   osc.start(startAt);
   osc.stop(startAt + dur + 0.06);
 }
 
-function pulseKick({ ac, startAt }: { ac: AudioContext; startAt: number }) {
+function pulseKick({ ac, startAt, out = ac.destination }: { ac: AudioContext; startAt: number; out?: AudioNode }) {
   const osc = ac.createOscillator();
   const amp = ac.createGain();
   osc.type = "sine";
@@ -88,7 +97,7 @@ function pulseKick({ ac, startAt }: { ac: AudioContext; startAt: number }) {
   amp.gain.setValueAtTime(0.0001, startAt);
   amp.gain.exponentialRampToValueAtTime(0.16, startAt + 0.02);
   amp.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.2);
-  osc.connect(amp).connect(ac.destination);
+  osc.connect(amp).connect(out);
   osc.start(startAt);
   osc.stop(startAt + 0.25);
 }
@@ -115,11 +124,11 @@ function startMusic() {
     const t = ac.currentTime + 0.05;
     const bass = progression[step % progression.length];
     const top = lead[step % lead.length];
-    pulseKick({ ac, startAt: t });
-    playDrone({ ac, freq: bass, gain: 0.05, type: "triangle", startAt: t, dur: 0.32 });
-    playDrone({ ac, freq: top, gain: 0.025, type: "sawtooth", startAt: t + 0.08, dur: 0.28 });
+    pulseKick({ ac, startAt: t, out: musicGain ?? ac.destination });
+    playDrone({ ac, freq: bass, gain: 0.05, type: "triangle", startAt: t, dur: 0.32, out: musicGain ?? ac.destination });
+    playDrone({ ac, freq: top, gain: 0.025, type: "sawtooth", startAt: t + 0.08, dur: 0.28, out: musicGain ?? ac.destination });
     if (step % 2 === 0) {
-      playDrone({ ac, freq: bass * 2, gain: 0.014, type: "square", startAt: t + 0.12, dur: 0.2 });
+      playDrone({ ac, freq: bass * 2, gain: 0.014, type: "square", startAt: t + 0.12, dur: 0.2, out: musicGain ?? ac.destination });
     }
     step += 1;
   };

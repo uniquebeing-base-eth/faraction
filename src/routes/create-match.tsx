@@ -464,7 +464,7 @@ function CreateMatch() {
         )
       }
     >
-      <div className="fa-scroll flex h-full flex-col gap-4 overflow-y-auto pr-1">
+      <div className="fa-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
         <div>
           <p className="label-xs">Match mode</p>
           <div className="mt-2 grid grid-cols-3 gap-3">
