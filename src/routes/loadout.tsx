@@ -162,129 +162,187 @@ function Loadout() {
 
   const add = (id: string) => {
     const card = CARDS.find((c) => c.id === id)!;
-    if (sequence.length >= 5 || used + card.energyCost > energyPool) return;
+    if (sequence.includes(id) || sequence.length >= 5 || used + card.energyCost > energyPool) return;
     setSequence((s) => [...s, id]);
   };
 
+  const activeCardId = sequence[sequence.length - 1] ?? shown[0]?.id ?? pool[0]?.id;
+  const activeCard = activeCardId ? CARDS.find((c) => c.id === activeCardId) : undefined;
+
   return (
-    <main className="fa-screen">
-      <GameWorld dim={0.68} motes={false} />
+    <main className="fa-screen overflow-hidden bg-[#050915] text-white">
+      <GameWorld dim={0.65} motes={false} />
+
       <TopBar title="Deck Loadout" back="/select-fighter" />
 
-      <div className="relative z-10 grid h-full grid-cols-[300px_minmax(0,1fr)] gap-7 px-8 pt-20 pb-[104px]">
-        {/* Fighter + energy + archetypes */}
-        <aside className="flex min-h-0 flex-col gap-3">
-          <div className="panel flex items-center gap-3 p-3">
-            <img
-              src={fighter.portrait}
-              alt={fighter.name}
-              loading="lazy"
-              className="size-14 shrink-0 rounded-md object-cover object-top"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-sm font-bold">
-                {fighter.name} · {fighter.className}
-              </p>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full bg-facts transition-all duration-300"
-                  style={{ width: `${(used / energyPool) * 100}%` }}
-                />
-              </div>
-              <p className="label-xs mt-1">
-                Energy {used} / {energyPool}
-              </p>
-            </div>
+      <div className="relative z-10 grid h-[calc(100%-110px)] grid-cols-[minmax(0,1.7fr)_330px] gap-7 px-8 pb-6 pt-20">
+        <section className="panel overflow-hidden p-4">
+          <div className="flex items-center justify-between pb-3">
+            <p className="font-display text-[15px] tracking-[0.22em] text-white uppercase">
+              Your deck
+              <span className="ml-3 text-cyan-300">{sequence.length}/5</span>
+              <span className="ml-2 text-[10px] tracking-[0.18em] text-slate-300 uppercase">cards</span>
+            </p>
           </div>
 
-          <div className="panel min-h-0 flex-1 p-3">
-            <p className="label-xs">Preset sequences</p>
-            <div className="fa-scroll mt-2 flex max-h-[200px] flex-col gap-1.5 pr-1">
-              {archetypes.map((a) => (
+          <div className="grid grid-cols-5 gap-3">
+            {Array.from({ length: 5 }).map((_, i) => {
+              const id = sequence[i];
+              const card = id ? CARDS.find((c) => c.id === id) : undefined;
+
+              return (
                 <button
-                  key={a.key}
+                  key={i}
                   type="button"
-                  onClick={() => setSequence(a.cardIds.slice(0, 5))}
-                  className="shrink-0 rounded-md border border-border px-3 py-2 text-left font-display text-[11px] tracking-wider uppercase transition-colors hover:border-accent"
+                  onClick={() => setSequence((s) => s.filter((_, idx) => idx !== i))}
+                  className={`group relative h-[200px] overflow-hidden rounded-2xl border text-left transition-all duration-200 ${
+                    card
+                      ? "border-cyan-400/80 bg-[#090d1b]/70 shadow-[0_0_26px_rgba(34,211,238,0.22)]"
+                      : "border-dashed border-border/70 bg-[#0d1220]/60"
+                  }`}
                 >
-                  {a.label}
+                  {card ? (
+                    <>
+                      <img
+                        src={card.image}
+                        alt={card.name}
+                        className="absolute inset-0 h-full w-full object-cover opacity-80"
+                      />
+                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,13,20,0.0),rgba(11,13,20,0.5)_34%,rgba(7,9,15,0.94)_100%)]" />
+                      <div className="absolute left-2 top-2 flex items-center justify-center rounded-full border border-cyan-300/80 bg-[#0b1020]/70 px-2 py-1 font-display text-[11px] text-white">
+                        {i + 1}
+                      </div>
+                      <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-1.5 py-0.5 text-[10px] text-cyan-300">
+                        {card.energyCost}
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 p-2">
+                        <p className="font-display text-[11px] tracking-[0.12em] text-white uppercase">
+                          {card.name}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-4xl text-slate-500">
+                      +
+                    </div>
+                  )}
                 </button>
-              ))}
+              );
+            })}
+          </div>
+
+          <div className="mt-5 overflow-hidden rounded-2xl border border-border/70 bg-[#090f1f]/80">
+            <div className="flex items-center justify-between gap-3 border-b border-border/60 px-3 py-2">
+              <div className="flex flex-wrap gap-2">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFilter(f)}
+                    className={`rounded-md border px-3 py-1.5 font-display text-[10px] tracking-[0.2em] uppercase transition-all ${
+                      filter === f
+                        ? "border-fuchsia-400/70 bg-fuchsia-500/15 text-fuchsia-200 shadow-[0_0_20px_rgba(217,70,239,0.18)]"
+                        : "border-border/70 bg-transparent text-slate-300"
+                    }`}
+                  >
+                    {f === "all" ? "All" : f}
+                  </button>
+                ))}
+              </div>
+
               <button
                 type="button"
-                onClick={() => setSequence([])}
-                className="shrink-0 rounded-md border border-border/60 px-3 py-2 text-left font-display text-[11px] tracking-wider text-muted-foreground uppercase"
+                className="flex items-center gap-2 rounded-md border border-border/70 bg-[#0d1324] px-2.5 py-1.5 font-display text-[10px] tracking-[0.18em] text-slate-200 uppercase"
               >
-                Clear
+                All rarities
               </button>
             </div>
-          </div>
 
-          <div className="flex gap-1.5">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setFilter(f)}
-                className={`flex-1 rounded-md border py-2 font-display text-[10px] tracking-wider uppercase ${
-                  filter === f
-                    ? "border-accent bg-accent/10 text-accent"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        {/* Card pool */}
-        <section className="panel min-h-0 overflow-hidden p-4">
-          <p className="label-xs">Card pool · {shown.length} available</p>
-          <div className="fa-scroll mt-3 grid max-h-[calc(100%-2rem)] grid-cols-6 gap-2.5 pr-1">
-            {shown.map((card) => (
-              <CardTile
-                key={card.id}
-                card={card}
-                selected={sequence.includes(card.id)}
-                disabled={sequence.length >= 5 || used + card.energyCost > energyPool}
-                onClick={() => add(card.id)}
-              />
-            ))}
+            <div className="grid grid-cols-5 gap-2.5 p-3">
+              {shown.map((card) => (
+                <CardTile
+                  key={card.id}
+                  card={card}
+                  selected={sequence.includes(card.id)}
+                  disabled={sequence.length >= 5 || used + card.energyCost > energyPool}
+                  onClick={() => add(card.id)}
+                />
+              ))}
+            </div>
           </div>
         </section>
+
+        <aside className="panel overflow-hidden p-3">
+          {activeCard ? (
+            <>
+              <div className="relative overflow-hidden rounded-2xl border border-cyan-400/70 bg-[#060d1d]/90">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.2),transparent_35%),radial-gradient(circle_at_bottom,rgba(217,70,239,0.25),transparent_38%)]" />
+                <img
+                  src={activeCard.image}
+                  alt={activeCard.name}
+                  className="relative z-10 h-[260px] w-full object-cover object-top"
+                />
+                <div className="absolute left-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/80 bg-[#09111c]/80 font-display text-lg text-cyan-300">
+                  {sequence.filter((id) => id === activeCard.id).length || 1}
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-cyan-400/50 bg-[#091120]/80 p-4 shadow-[0_0_30px_rgba(34,211,238,0.12)]">
+                <h3 className="font-display text-[25px] leading-none tracking-[0.08em] text-white uppercase">
+                  {activeCard.name}
+                </h3>
+                <div className="mt-4 flex items-center gap-2 text-[10px] tracking-[0.18em] uppercase text-slate-200">
+                  <span className="rounded-full border border-cyan-300/60 bg-cyan-400/10 px-2 py-1 text-cyan-300">
+                    {activeCard.type}
+                  </span>
+                  <span className="rounded-full border border-pink-400/60 bg-pink-500/10 px-2 py-1 text-pink-300">
+                    {activeCard.rarity}
+                  </span>
+                </div>
+
+                <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border/60 pt-4">
+                  <div>
+                    <p className="label-xs text-slate-400">Knock</p>
+                    <p className="mt-1 font-display text-[20px] text-white">{activeCard.knock}</p>
+                  </div>
+                  <div>
+                    <p className="label-xs text-slate-400">Priority</p>
+                    <p className="mt-1 font-display text-[20px] text-white">{activeCard.priority}</p>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-sm leading-6 text-slate-200">{activeCard.effect}</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!sequence.includes(activeCard.id)) {
+                    add(activeCard.id);
+                  }
+                }}
+                className="mt-4 w-full rounded-xl border border-fuchsia-400/80 bg-gradient-to-r from-fuchsia-500/80 via-violet-500/80 to-cyan-400/80 px-4 py-3 font-display text-[13px] tracking-[0.22em] text-white uppercase shadow-[0_0_30px_rgba(217,70,239,0.30)] transition hover:brightness-110 disabled:opacity-50"
+                disabled={sequence.length >= 5 || used + activeCard.energyCost > energyPool || sequence.includes(activeCard.id)}
+              >
+                {sequence.includes(activeCard.id) ? "In Deck" : "Equip"}
+              </button>
+            </>
+          ) : (
+            <div className="flex h-full min-h-[420px] items-center justify-center rounded-2xl border border-dashed border-border/70 bg-[#0b0f1b]/60 text-slate-500">
+              Load a card to preview it.
+            </div>
+          )}
+        </aside>
       </div>
 
-      {/* Sequence dock */}
-      <div className="absolute inset-x-0 bottom-0 z-30 flex items-center gap-5 border-t border-border/60 bg-background/85 px-8 py-3 backdrop-blur-md">
-        <p className="label-xs w-24 shrink-0">
-          Sequence
-          <br />
-          {sequence.length}/5
-        </p>
-        <div className="flex flex-1 gap-2.5">
-          {Array.from({ length: 5 }).map((_, i) => {
-            const id = sequence[i];
-            const card = id ? CARDS.find((c) => c.id === id) : undefined;
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setSequence((s) => s.filter((_, idx) => idx !== i))}
-                className={`flex h-16 flex-1 flex-col items-center justify-center rounded-lg border text-center transition-all ${
-                  card
-                    ? "animate-slam border-accent/70 bg-accent/10"
-                    : "border-dashed border-border"
-                }`}
-              >
-                <span className="label-xs">Slot {i + 1}</span>
-                <span className="px-2 font-display text-[11px] leading-tight">
-                  {card ? card.name : "+"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="absolute inset-x-0 bottom-0 z-30 flex items-center gap-5 border-t border-border/60 bg-[#070c1a]/90 px-8 py-3 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setSequence([])}
+          className="rounded-lg border border-border/70 bg-[#0c101a] px-4 py-2 font-display text-[10px] tracking-[0.18em] text-slate-200 uppercase"
+        >
+          Clear
+        </button>
         <button
           type="button"
           disabled={sequence.length !== 5 || enterArena.isPending}
@@ -293,7 +351,7 @@ function Loadout() {
             update({ deck: sequence });
             enterArena.mutate();
           }}
-          className="fa-btn w-56 shrink-0 disabled:opacity-40"
+          className="fa-btn ml-auto w-56 shrink-0 disabled:opacity-40"
         >
           {enterArena.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
           {enterArena.isPending
@@ -303,8 +361,9 @@ function Loadout() {
               : `Select ${5 - sequence.length} more`}
         </button>
       </div>
+
       {feeError ? (
-        <p className="absolute inset-x-0 bottom-2 z-30 text-center text-[11px] text-strike">
+        <p className="absolute inset-x-0 bottom-3 z-40 text-center text-[11px] text-strike">
           {feeError}
         </p>
       ) : null}

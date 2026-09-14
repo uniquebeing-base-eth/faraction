@@ -10,11 +10,14 @@ import {
   ChevronRight,
   PlusCircle,
   LogIn,
+  Home,
+  Settings,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePlayer, passIsActive } from "@/lib/game/store";
+import { usePlayer, passIsActive, displayHandle } from "@/lib/game/store";
 import { randomFact, CHARACTERS } from "@/lib/game/gameData";
 import { GameWorld } from "@/components/GameWorld";
+import { SeasonIntroScene } from "@/components/SeasonIntroScene";
 import { TopBar } from "@/components/TopBar";
 import squadGenesisAssetPointer from "@/assets/img/squad-genesis.webp.asset.json";
 import { cdnAsset } from "@/lib/assets";
@@ -105,6 +108,15 @@ const FEATURED: { id: string; art: string; name: string; tag: string; alt: strin
   })),
 ];
 
+const NAV_ITEMS = [
+  { to: "/", label: "Home", Icon: Home, active: true },
+  { to: "/create-match", label: "Fight", Icon: Swords },
+  { to: "/leaderboard", label: "Leaderboard", Icon: Trophy },
+  { to: "/loadout", label: "Cards", Icon: PlusCircle },
+  { to: "/select-fighter", label: "Roster", Icon: Users },
+  { to: "/market", label: "Market", Icon: Store },
+] as const;
+
 const STATIONS = [
   {
     to: "/leaderboard",
@@ -133,7 +145,7 @@ function Landing() {
   const { player } = usePlayer();
   const { config: season, status } = useSeason();
   const [fact, setFact] = useState(BASE_FACT_PLACEHOLDER);
-  const [featured, setFeatured] = useState(0);
+  const [featured, setFeatured] = useState(() => FEATURED.findIndex((f) => f.id === "noxar"));
 
   useEffect(() => {
     setFact(randomFact());
@@ -147,174 +159,202 @@ function Landing() {
   }, []);
 
   const pass = passIsActive(player);
-  const hero = FEATURED[featured]!;
+  const hero = CHARACTERS.find((fighter) => fighter.id === player.fighterId) ?? CHARACTERS[0]!;
+  const heroArt = hero.fullArt || hero.standingArt || hero.portrait || "";
+  const heroAlt = `${hero.name} fighter artwork`;
 
   return (
-    <main className="fa-screen">
-      <GameWorld dim={0.45} />
+    <main className="fa-screen overflow-hidden bg-[#050915] text-white">
+      <SeasonIntroScene className="z-0 opacity-80" accent="#d08cff" />
+      <GameWorld dim={0.28} />
 
-      {/* Featured fighter, centre stage */}
-      <div className="pointer-events-none absolute inset-y-0 left-1/2 z-[5] w-[620px] -translate-x-[58%]">
-        <div className="fa-pedestal absolute inset-x-0 bottom-14 h-56" />
-        <img
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
-          key={hero.id}
-          src={hero.art}
-          alt={hero.alt}
-          className="fa-art animate-float absolute bottom-16 left-1/2 h-[600px] -translate-x-1/2 object-contain object-bottom"
-        />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(192,114,255,0.22),transparent_30%),radial-gradient(circle_at_30%_60%,rgba(64,141,255,0.12),transparent_35%),linear-gradient(180deg,#050915_0%,#080d16_100%)]" />
+      <div className="absolute inset-0 opacity-70">
+        <div className="absolute -left-24 top-24 h-[460px] w-[460px] rounded-full bg-fuchsia-500/15 blur-3xl" />
+        <div className="absolute right-8 bottom-20 h-[520px] w-[520px] rounded-full bg-violet-600/12 blur-3xl" />
+        <div className="absolute inset-x-0 bottom-0 h-56 bg-[linear-gradient(180deg,transparent,rgba(15,17,26,0.9))]" />
       </div>
 
-      <TopBar />
+      <aside className="absolute inset-y-0 left-0 z-30 flex w-[92px] flex-col items-center border-r border-white/10 bg-[#050914]/80 px-2 py-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-md">
+        <Link to="/" className="mb-8 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80">
+          <span className="flex flex-col gap-1">
+            <span className="h-0.5 w-5 rounded-full bg-current" />
+            <span className="h-0.5 w-5 rounded-full bg-current" />
+            <span className="h-0.5 w-5 rounded-full bg-current" />
+          </span>
+        </Link>
 
-      <div className="relative z-10 grid h-full grid-cols-[520px_minmax(0,1fr)_320px] gap-6 px-8 pt-20 pb-6">
-        {/* Left — identity + primary actions */}
-        <section className="flex flex-col justify-center">
-          <p className="label-xs text-accent">
-            {season.name} · {status.ended ? "Ended" : "Live"}
-          </p>
-          <p className="label-xs mt-1 text-muted-foreground">
-            {status.ended
-              ? "Leaderboard locked · rewards claimable"
-              : `Ends in ${status.parts.days}d ${status.parts.hours}h ${status.parts.minutes}m ${status.parts.seconds}s`}
-          </p>
-          <h1 className="mt-2 font-display text-[70px] leading-[0.9] font-bold tracking-tight">
-            FAR<span className="text-accent">ACTION</span>
-          </h1>
-          <p className="mt-3 max-w-[42ch] text-sm font-semibold leading-relaxed text-foreground/90">
-            Onchain card fighting on Base. Lock a five-slot sequence, reveal it against the House AI
-            or a rival, and stack FACTS toward the 100,000,000 $FACTS season reward pool.
-          </p>
+        <div className="flex w-full flex-col items-center gap-3">
+          {NAV_ITEMS.map(({ to, label, Icon, active }) => (
+            <Link
+              key={label}
+              to={to}
+              className={`flex w-[76px] flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-[10px] font-display uppercase tracking-[0.18em] ${
+                active
+                  ? "border-fuchsia-400/60 bg-fuchsia-500/15 text-fuchsia-200 shadow-[0_0_18px_rgba(192,114,255,0.45)]"
+                  : "border-transparent bg-transparent text-white/60 hover:border-white/10 hover:text-white"
+              }`}
+            >
+              <Icon className="size-5" />
+              <span>{label}</span>
+            </Link>
+          ))}
+        </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link to="/create-match" className="fa-btn">
-              <PlusCircle className="size-4" />
-              Create Match
-            </Link>
-            <Link to="/join-match" className="fa-btn-ghost">
-              <LogIn className="size-4" />
-              Join Match
-            </Link>
-            <Link to="/select-fighter" className="fa-btn-ghost">
-              <Swords className="size-4" />
-              Enter Arena
-            </Link>
-            <Link to="/loadout" className="fa-btn-ghost">
-              <Users className="size-4" />
-              Quick Match
-            </Link>
-          </div>
+        <Link to="/profile" className="mt-auto flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80">
+          <Settings className="size-5" />
+        </Link>
+      </aside>
 
-          <Link
-            to="/house-boss"
-            className="panel animate-ring mt-5 flex max-w-[500px] items-center gap-4 p-4 transition-transform hover:-translate-y-0.5"
-          >
-            <span className="grid size-11 shrink-0 place-items-center rounded-lg border border-facts/40 bg-facts/10">
-              <Crown className="size-5 text-facts" />
+      <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-8 py-6 pl-[118px]">
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3">
+            <span className="font-display text-[38px] font-black italic leading-none tracking-[-0.08em] text-white">
+              FAR
+              <span className="text-fuchsia-400">ACTION</span>
             </span>
-            <span className="min-w-0">
-              <span className="label-xs block text-facts">Season reward pool</span>
-              <span className="block font-display text-lg font-bold">
-                {season.rewardPool.toLocaleString()} $FACTS
-              </span>
-              <span className="block text-[11px] font-semibold text-muted-foreground/90">
-                Top 25 split the pool — #1 takes {formatFacts(20_000_000)} FACTS
-              </span>
-            </span>
-            <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground" />
-          </Link>
-
-          {/* Roster rotation rail */}
-          <div className="mt-5 flex items-center gap-2">
-            <span className="label-xs shrink-0">Roster</span>
-            {FEATURED.map((f, i) => (
-              <button
-                key={f.id}
-                type="button"
-                aria-label={`Feature ${f.name}`}
-                onClick={() => setFeatured(i)}
-                className={`h-11 w-11 overflow-hidden rounded-md border transition-all ${
-                  i === featured
-                    ? "border-accent glow"
-                    : "border-border/60 opacity-55 hover:opacity-90"
-                }`}
-              >
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src={f.art}
-                  alt=""
-                  className="size-full object-cover object-top"
-                />
-              </button>
-            ))}
+            <div className="ml-4 inline-flex items-center gap-2 rounded-full border border-fuchsia-400/50 bg-fuchsia-500/10 px-3 py-1 font-display text-[10px] uppercase tracking-[0.18em] text-fuchsia-200">
+              <span className="text-fuchsia-300">SEASON 2</span>
+            </div>
           </div>
-        </section>
-
-        <div className="flex items-end justify-center pb-8">
-          <div className="panel pointer-events-none px-5 py-2 text-center">
-            <p className="label-xs text-accent">{hero.tag}</p>
-            <p className="font-display text-xl font-bold tracking-wide">{hero.name}</p>
+          <div className="font-display text-[18px] uppercase italic tracking-[0.18em] text-fuchsia-300">
+            THE RISE OF JUNKIES
           </div>
         </div>
 
-        {/* Right — station rail */}
-        <aside className="flex flex-col justify-center gap-2.5">
-          <p className="label-xs text-[11px]">Arena stations</p>
-          {STATIONS.map(({ to, label, note, Icon, tint }) => (
-            <Link
-              key={to}
-              to={to}
-              className="panel group flex items-center gap-3 p-3.5 transition-transform hover:-translate-y-0.5"
-            >
-              <Icon className={`size-4 shrink-0 ${tint}`} />
-              <span className="min-w-0">
-                <span className="block font-display text-[15px] font-extrabold leading-tight">{label}</span>
-                <span className="mt-0.5 block text-[12px] font-semibold text-muted-foreground/90">{note}</span>
-              </span>
-              <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          ))}
-
-          <Link
-            to="/season-pass"
-            className={`flex items-center gap-3 rounded-lg border p-3.5 backdrop-blur-md transition-transform hover:-translate-y-0.5 ${
-              pass ? "border-facts/60 bg-facts/15" : "border-facts/35 bg-facts/5"
-            }`}
-          >
-            <Zap className="size-4 shrink-0 text-facts" />
-            <span className="min-w-0">
-              <span className="block font-display text-[15px] font-extrabold leading-tight text-facts">
-                {pass ? "Pass Active" : "Season Pass"}
-              </span>
-              <span className="mt-0.5 block text-[12px] font-semibold text-muted-foreground/90">
-                {pass
-                  ? "Ranked + leaderboard unlocked"
-                  : "Required for Ranked & the 100M $FACTS pool"}
-              </span>
-            </span>
-          </Link>
-
-          <div className="panel mt-1 grid grid-cols-3 gap-2 p-3 text-center">
-            {(
-              [
-                ["Wins", String(player.wins)],
-                ["Losses", String(player.losses)],
-                ["Streak", `${player.houseStreak}/5`],
-              ] as const
-            ).map(([k, v]) => (
-              <div key={k}>
-                <p className="label-xs">{k}</p>
-                <p className="font-display text-base font-bold">{v}</p>
-              </div>
-            ))}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 text-cyan-200 shadow-[0_0_18px_rgba(45,212,191,0.2)]">
+            <span className="font-display text-[11px] uppercase tracking-[0.18em]">FACTS</span>
+            <span className="font-display text-lg font-bold">{Math.max(0, Math.floor(player.fp)).toLocaleString()}</span>
           </div>
-        </aside>
+          <div className="flex items-center gap-2 rounded-full border border-violet-400/50 bg-violet-500/10 px-3 py-2 text-violet-200">
+            <img src={hero.portrait || heroArt} alt="" className="h-8 w-8 rounded-full border border-white/20 object-cover" />
+            <span className="font-display text-[11px] uppercase tracking-[0.18em]">{displayHandle(player)}</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="absolute inset-0 z-10 pl-[116px] pb-[76px] pt-[90px]">
+        <div className="relative h-full w-full">
+          <div className="absolute left-6 top-4 max-w-[560px]">
+            <p className="label-xs text-fuchsia-300">SEASON 2</p>
+            <h1 className="mt-2 font-display text-[84px] uppercase leading-[0.76] tracking-[-0.09em] text-white drop-shadow-[0_0_24px_rgba(232,121,249,0.65)]">
+              <span className="block text-[0.78em] text-fuchsia-200">THE RISE OF</span>
+              <span className="block text-fuchsia-400 [text-shadow:0_0_18px_rgba(217,70,239,0.9)]">JUNKIES</span>
+            </h1>
+            <p className="mt-5 max-w-[350px] text-[13px] uppercase tracking-[0.12em] text-white/55">
+              CORRUPTION BREEDS POWER.<br />THE ARENA AWAITS.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link to="/select-fighter" className="inline-flex items-center gap-3 rounded-xl border border-fuchsia-400/70 bg-[linear-gradient(90deg,rgba(142,84,255,0.24),rgba(74,227,255,0.13))] px-6 py-3 text-[13px] font-display font-bold uppercase tracking-[0.14em] text-fuchsia-100 shadow-[0_0_22px_rgba(216,180,254,0.5)]">
+                <Swords className="size-4" />
+                ENTER THE ARENA
+              </Link>
+            </div>
+          </div>
+
+          <div className="absolute inset-x-[18%] bottom-0 top-[18px] flex items-end justify-center">
+            <div className="relative h-[82%] w-[840px]">
+              <span className="fa-smoke left-[12%] top-[16%] h-56 w-56" />
+              <span className="fa-smoke right-[16%] top-[18%] h-64 w-64" />
+              <div className="absolute inset-x-[8%] bottom-8 h-[200px] rounded-full bg-fuchsia-500/20 blur-3xl" />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-[radial-gradient(circle_at_center,rgba(156,81,255,0.28),transparent_60%)]" />
+              <img
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                key={hero.id}
+                src={heroArt}
+                alt={heroAlt}
+                className="absolute inset-x-0 bottom-0 mx-auto h-[570px] w-[640px] object-contain object-bottom drop-shadow-[0_26px_80px_rgba(192,114,255,0.45)]"
+              />
+            </div>
+          </div>
+
+          <aside className="absolute right-6 top-4 w-[290px] rounded-[28px] border border-fuchsia-400/40 bg-[#070d1a]/80 p-4 shadow-[0_0_0_1px_rgba(192,114,255,0.2),0_22px_60px_rgba(59,12,84,0.7)] backdrop-blur-md">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 text-fuchsia-300">
+                <span className="font-display text-[11px] uppercase tracking-[0.18em]">{hero.className ?? "VANGUARD"}</span>
+              </div>
+              <div className="rounded-full border border-fuchsia-400/50 bg-fuchsia-500/10 px-2 py-0.5 text-[10px] font-display uppercase tracking-[0.18em] text-fuchsia-100">
+                {hero.name}
+              </div>
+            </div>
+
+            <div className="mt-4 text-center">
+              <div className="font-display text-[42px] uppercase leading-none tracking-[-0.08em] text-white">{hero.name}</div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {[
+                { label: "KNOCK", value: hero.knockStat ?? 0 },
+                { label: "PRIORITY", value: hero.priorityStat ?? 0 },
+                { label: "DRAIN", value: hero.drainStat ?? 0 },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-2.5 py-1 text-[9px] uppercase tracking-[0.18em] text-white/70"
+                >
+                  <span className="text-white/45">{stat.label}</span>
+                  <span className="font-display text-[13px] font-bold text-fuchsia-200">{stat.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-fuchsia-400/30 bg-fuchsia-500/8 p-3">
+              <div className="flex items-center gap-2 text-fuchsia-200">
+                <span className="font-display text-[11px] uppercase tracking-[0.18em]">{hero.passive?.name ?? "Passive"}</span>
+              </div>
+              <div className="mt-2 text-xs text-white/70">{hero.passive?.description ?? "Pressure and precision control the fight."}</div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              {[
+                [hero.ultimate?.name ?? "Finale", "ULTIMATE"],
+                [hero.passive?.name ?? "Pressure", "PASSIVE"],
+                [hero.className ?? "CLASS", "ROLE"],
+              ].map(([name, kind]) => (
+                <div key={`${name}-${kind}`} className="rounded-2xl border border-white/10 bg-white/5 p-2 text-center">
+                  <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/10 text-fuchsia-200">
+                    <Zap className="size-4" />
+                  </div>
+                  <div className="font-display text-[10px] uppercase tracking-[0.14em] text-white/70">{name}</div>
+                  <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/45">{kind}</div>
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          <div className="absolute inset-x-0 bottom-0 z-30 flex items-end justify-center px-6 pb-2">
+            <div className="grid w-full max-w-[1180px] grid-cols-4 gap-4">
+              {[
+                { label: "FIGHTERS", sub: "VIEW & SELECT", to: "/select-fighter", icon: Users },
+                { label: "CARDS", sub: "BUILD YOUR DECK", to: "/loadout", icon: PlusCircle },
+                { label: "ARENAS", sub: "ENTER THE BATTLE", to: "/create-match", icon: Swords },
+                { label: "MARKET", sub: "BUY & SELL", to: "/market", icon: Store },
+              ].map(({ label, sub, to, icon: Icon }) => (
+                <Link
+                  key={label}
+                  to={to}
+                  className="group flex items-center justify-between rounded-[22px] border border-fuchsia-400/40 bg-[linear-gradient(180deg,rgba(29,17,41,0.8),rgba(10,12,18,0.88))] p-4 text-left shadow-[0_0_18px_rgba(168,85,247,0.18)] transition-transform hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-fuchsia-300/40 bg-fuchsia-500/10 text-fuchsia-200">
+                      <Icon className="size-5" />
+                    </div>
+                    <div>
+                      <div className="font-display text-[22px] leading-none tracking-[0.08em] text-white">{label}</div>
+                      <div className="mt-2 text-[10px] uppercase tracking-[0.2em] text-fuchsia-200/80">{sub}</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-5 text-fuchsia-200 opacity-80 transition-transform group-hover:translate-x-1" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom rail — live ecosystem ticker + Base codex */}
       <div className="absolute inset-x-0 bottom-0 z-20 border-t border-border/50 bg-background/70 backdrop-blur-md">
         <div className="flex items-center gap-3 px-8 py-2">
           <span className="label-xs shrink-0 text-facts">Live</span>

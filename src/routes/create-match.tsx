@@ -375,23 +375,25 @@ function CreateMatch() {
           </div>
         ) : (
           <div className="space-y-2">
-          <div className="panel space-y-1.5 p-4">
-            <Row k="Mode" v={modeLabel(mode)} />
-            <Row
-              k="Entry fee (at ready)"
-              v={`${ENTRY_FEE_USDC.toFixed(2)} USDC${feeInFacts ? ` · ≈${feeInFacts} FACTS` : ""}`}
-            />
-            <Row k="Season Pass" v={pass ? "Active" : "None"} accent={pass} />
-            {staked ? (
-              <>
-                <Row k="Your stake" v={formatAmount(stake, token)} />
-                <Row k="Pot" v={formatAmount(pot, token)} />
-                <Row k="Winner takes" v={formatAmount(winnerTake, token)} accent />
-                <Row k="Platform 10%" v={formatAmount(fee, token)} />
-              </>
-            ) : (
-              <Row k="Stake" v="Unstaked · points only" />
-            )}
+          <div className="panel border border-fuchsia-400/20 bg-slate-950/55 p-3.5 shadow-[0_0_0_1px_rgba(168,85,247,0.08)]">
+            <div className="space-y-1.5">
+              <Row k="Mode" v={modeLabel(mode)} />
+              <Row
+                k="Entry fee (at ready)"
+                v={`${ENTRY_FEE_USDC.toFixed(2)} USDC${feeInFacts ? ` · ≈${feeInFacts} FACTS` : ""}`}
+              />
+              <Row k="Season Pass" v={pass ? "Active" : "None"} accent={pass} />
+              {staked ? (
+                <>
+                  <Row k="Your stake" v={formatAmount(stake, token)} />
+                  <Row k="Pot" v={formatAmount(pot, token)} />
+                  <Row k="Winner takes" v={formatAmount(winnerTake, token)} accent />
+                  <Row k="Platform 10%" v={formatAmount(fee, token)} />
+                </>
+              ) : (
+                <Row k="Stake" v="Unstaked · points only" />
+              )}
+            </div>
           </div>
           {error ? <p className="text-xs text-strike">{error}</p> : null}
           {blockedBy1v1 && pendingRow ? (
