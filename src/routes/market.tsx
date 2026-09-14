@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowRight, Loader2, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, Zap } from "lucide-react";
 import { Screen } from "@/components/Screen";
 import { CardTile } from "@/components/CardTile";
 import { CARDS, CHARACTERS, type Card } from "@/lib/game/gameData";
