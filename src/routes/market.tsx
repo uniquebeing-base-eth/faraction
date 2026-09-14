@@ -150,12 +150,12 @@ function Market() {
         </div>
       }
     >
-      <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-2">
-        <div className="rounded-[26px] border border-fuchsia-400/25 bg-[linear-gradient(180deg,rgba(29,17,41,0.82),rgba(9,12,19,0.9))] p-4 shadow-[0_0_28px_rgba(168,85,247,0.14)]">
+      <div className="flex min-h-0 flex-col gap-3 overflow-y-auto pb-2">
+        <div className="rounded-[26px] border border-fuchsia-400/25 bg-[linear-gradient(180deg,rgba(29,17,41,0.82),rgba(9,12,19,0.9))] p-3 shadow-[0_0_28px_rgba(168,85,247,0.14)]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="label-xs text-fuchsia-300">Featured drop</p>
-              <h2 className="mt-2 font-display text-[30px] uppercase leading-none tracking-[-0.08em] text-white">
+              <h2 className="mt-2 font-display text-[24px] uppercase leading-none tracking-[-0.08em] text-white">
                 {activeFeature.name}
               </h2>
             </div>
@@ -183,14 +183,14 @@ function Market() {
             </button>
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
-            <div className="relative overflow-hidden rounded-[24px] border border-fuchsia-400/30 bg-[radial-gradient(circle_at_top,rgba(192,114,255,0.22),transparent_38%),linear-gradient(135deg,#120b1d,#0d1019_50%,#10131d)] p-4">
+          <div className="mt-3 grid gap-3 md:grid-cols-[1.2fr_0.8fr]">
+            <div className="relative overflow-hidden rounded-[24px] border border-fuchsia-400/30 bg-[radial-gradient(circle_at_top,rgba(192,114,255,0.22),transparent_38%),linear-gradient(135deg,#120b1d,#0d1019_50%,#10131d)] p-3">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(34,211,238,0.18),transparent_20%),radial-gradient(circle_at_15%_70%,rgba(168,85,247,0.20),transparent_30%)]" />
               <div className="absolute bottom-0 right-0 h-36 w-36 rounded-full bg-fuchsia-500/20 blur-3xl" />
               <img
                 src={activeFeature.image}
                 alt={activeFeature.name}
-                className="relative z-10 ml-auto h-40 w-40 object-contain drop-shadow-[0_0_30px_rgba(192,114,255,0.4)]"
+                className="relative z-10 ml-auto h-28 w-28 object-contain drop-shadow-[0_0_30px_rgba(192,114,255,0.4)]"
               />
               <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
                 <div>
