@@ -176,7 +176,7 @@ function Loadout() {
       <TopBar title="Deck Loadout" back="/select-fighter" />
 
       <div className="relative z-10 grid h-[calc(100%-110px)] grid-cols-[minmax(0,1.7fr)_330px] gap-7 px-8 pb-6 pt-20">
-        <section className="panel overflow-hidden p-4">
+        <section className="panel flex min-h-0 flex-col overflow-hidden p-4">
           <div className="flex items-center justify-between pb-3">
             <p className="font-display text-[15px] tracking-[0.22em] text-white uppercase">
               Your deck
@@ -185,89 +185,91 @@ function Loadout() {
             </p>
           </div>
 
-          <div className="grid grid-cols-5 gap-3">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const id = sequence[i];
-              const card = id ? CARDS.find((c) => c.id === id) : undefined;
+          <div className="fa-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
+            <div className="grid grid-cols-5 gap-3">
+              {Array.from({ length: 5 }).map((_, i) => {
+                const id = sequence[i];
+                const card = id ? CARDS.find((c) => c.id === id) : undefined;
 
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSequence((s) => s.filter((_, idx) => idx !== i))}
-                  className={`group relative h-[200px] overflow-hidden rounded-2xl border text-left transition-all duration-200 ${
-                    card
-                      ? "border-cyan-400/80 bg-[#090d1b]/70 shadow-[0_0_26px_rgba(34,211,238,0.22)]"
-                      : "border-dashed border-border/70 bg-[#0d1220]/60"
-                  }`}
-                >
-                  {card ? (
-                    <>
-                      <img
-                        src={card.image}
-                        alt={card.name}
-                        className="absolute inset-0 h-full w-full object-cover opacity-80"
-                      />
-                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,13,20,0.0),rgba(11,13,20,0.5)_34%,rgba(7,9,15,0.94)_100%)]" />
-                      <div className="absolute left-2 top-2 flex items-center justify-center rounded-full border border-cyan-300/80 bg-[#0b1020]/70 px-2 py-1 font-display text-[11px] text-white">
-                        {i + 1}
-                      </div>
-                      <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-1.5 py-0.5 text-[10px] text-cyan-300">
-                        {card.energyCost}
-                      </div>
-                      <div className="absolute inset-x-0 bottom-0 p-2">
-                        <p className="font-display text-[11px] tracking-[0.12em] text-white uppercase">
-                          {card.name}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-4xl text-slate-500">
-                      +
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 overflow-hidden rounded-2xl border border-border/70 bg-[#090f1f]/80">
-            <div className="flex items-center justify-between gap-3 border-b border-border/60 px-3 py-2">
-              <div className="flex flex-wrap gap-2">
-                {FILTERS.map((f) => (
+                return (
                   <button
-                    key={f}
+                    key={i}
                     type="button"
-                    onClick={() => setFilter(f)}
-                    className={`rounded-md border px-3 py-1.5 font-display text-[10px] tracking-[0.2em] uppercase transition-all ${
-                      filter === f
-                        ? "border-fuchsia-400/70 bg-fuchsia-500/15 text-fuchsia-200 shadow-[0_0_20px_rgba(217,70,239,0.18)]"
-                        : "border-border/70 bg-transparent text-slate-300"
+                    onClick={() => setSequence((s) => s.filter((_, idx) => idx !== i))}
+                    className={`group relative h-[200px] overflow-hidden rounded-2xl border text-left transition-all duration-200 ${
+                      card
+                        ? "border-cyan-400/80 bg-[#090d1b]/70 shadow-[0_0_26px_rgba(34,211,238,0.22)]"
+                        : "border-dashed border-border/70 bg-[#0d1220]/60"
                     }`}
                   >
-                    {f === "all" ? "All" : f}
+                    {card ? (
+                      <>
+                        <img
+                          src={card.image}
+                          alt={card.name}
+                          className="absolute inset-0 h-full w-full object-cover opacity-80"
+                        />
+                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,13,20,0.0),rgba(11,13,20,0.5)_34%,rgba(7,9,15,0.94)_100%)]" />
+                        <div className="absolute left-2 top-2 flex items-center justify-center rounded-full border border-cyan-300/80 bg-[#0b1020]/70 px-2 py-1 font-display text-[11px] text-white">
+                          {i + 1}
+                        </div>
+                        <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-1.5 py-0.5 text-[10px] text-cyan-300">
+                          {card.energyCost}
+                        </div>
+                        <div className="absolute inset-x-0 bottom-0 p-2">
+                          <p className="font-display text-[11px] tracking-[0.12em] text-white uppercase">
+                            {card.name}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-4xl text-slate-500">
+                        +
+                      </div>
+                    )}
                   </button>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-md border border-border/70 bg-[#0d1324] px-2.5 py-1.5 font-display text-[10px] tracking-[0.18em] text-slate-200 uppercase"
-              >
-                All rarities
-              </button>
+                );
+              })}
             </div>
 
-            <div className="grid grid-cols-5 gap-2.5 p-3">
-              {shown.map((card) => (
-                <CardTile
-                  key={card.id}
-                  card={card}
-                  selected={sequence.includes(card.id)}
-                  disabled={sequence.length >= 5 || used + card.energyCost > energyPool}
-                  onClick={() => add(card.id)}
-                />
-              ))}
+            <div className="overflow-hidden rounded-2xl border border-border/70 bg-[#090f1f]/80">
+              <div className="flex items-center justify-between gap-3 border-b border-border/60 px-3 py-2">
+                <div className="flex flex-wrap gap-2">
+                  {FILTERS.map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setFilter(f)}
+                      className={`rounded-md border px-3 py-1.5 font-display text-[10px] tracking-[0.2em] uppercase transition-all ${
+                        filter === f
+                          ? "border-fuchsia-400/70 bg-fuchsia-500/15 text-fuchsia-200 shadow-[0_0_20px_rgba(217,70,239,0.18)]"
+                          : "border-border/70 bg-transparent text-slate-300"
+                      }`}
+                    >
+                      {f === "all" ? "All" : f}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-md border border-border/70 bg-[#0d1324] px-2.5 py-1.5 font-display text-[10px] tracking-[0.18em] text-slate-200 uppercase"
+                >
+                  All rarities
+                </button>
+              </div>
+
+              <div className="grid grid-cols-5 gap-2.5 p-3">
+                {shown.map((card) => (
+                  <CardTile
+                    key={card.id}
+                    card={card}
+                    selected={sequence.includes(card.id)}
+                    disabled={sequence.length >= 5 || used + card.energyCost > energyPool}
+                    onClick={() => add(card.id)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </section>
