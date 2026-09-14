@@ -186,7 +186,7 @@ function Loadout() {
             </p>
           </div>
 
-          <div className="mb-3 rounded-xl border border-cyan-400/30 bg-cyan-500/5 px-3 py-2">
+          <div className="mb-3 shrink-0 rounded-xl border border-cyan-400/30 bg-cyan-500/5 px-3 py-2">
             <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.18em] text-slate-200">
               <span>Energy</span>
               <span className="font-display text-[11px] text-cyan-300">
@@ -204,7 +204,7 @@ function Loadout() {
             </p>
           </div>
 
-          <div className="fa-scroll flex min-h-0 max-h-[calc(100vh-390px)] flex-1 flex-col gap-5 overflow-y-auto pr-1">
+          <div className="fa-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
             <div className="grid grid-cols-5 gap-3">
               {Array.from({ length: 5 }).map((_, i) => {
                 const id = sequence[i];
