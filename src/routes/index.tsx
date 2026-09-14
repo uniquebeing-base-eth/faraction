@@ -14,16 +14,18 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePlayer, passIsActive, displayHandle } from "@/lib/game/store";
 import { randomFact, CHARACTERS } from "@/lib/game/gameData";
 import { GameWorld } from "@/components/GameWorld";
 import { SeasonIntroScene } from "@/components/SeasonIntroScene";
-import { TopBar } from "@/components/TopBar";
-import squadGenesisAssetPointer from "@/assets/img/squad-genesis.webp.asset.json";
+import squadJunkiesPointer from "@/assets/img/squad-junkies.png.asset.json";
 import { cdnAsset } from "@/lib/assets";
-const squadGenesisAsset = cdnAsset(squadGenesisAssetPointer.url);
+import { hydrateMute, isMuted, setMuted, subscribeMute, sfx, music } from "@/lib/sound";
+const squadJunkiesAsset = cdnAsset(squadJunkiesPointer);
 import { useSeason, formatFacts } from "@/lib/game/season";
 import { ActivityTicker } from "@/components/ActivityTicker";
 
@@ -89,34 +91,16 @@ export const Route = createFileRoute("/")({
 const BASE_FACT_PLACEHOLDER =
   "Base is an Ethereum L2 incubated by Coinbase, built on the OP Stack.";
 
-/**
- * Featured hero rotation. Add an entry here to spotlight a new fighter — the
- * home page cycles through the list and needs no other change.
- */
-const FEATURED: { id: string; art: string; name: string; tag: string; alt: string }[] = [
-  {
-    id: "squad",
-    art: squadGenesisAsset,
-    name: "THE SQUAD",
-    tag: "Season 2 · The Rise of Junkies roster",
-    alt: "The FarAction squad standing together in the arena",
-  },
-  ...CHARACTERS.map((c) => ({
-    id: c.id,
-    art: c.fullArt,
-    name: c.name,
-    tag: `${c.className} class`,
-    alt: `${c.name}, ${c.className} class fighter in the FarAction arena`,
-  })),
-];
+/** How long each fighter holds the spotlight before the roster rotates. */
+const ROSTER_ROTATE_MS = 3500;
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", Icon: Home, active: true },
-  { to: "/create-match", label: "Fight", Icon: Swords },
-  { to: "/leaderboard", label: "Leaderboard", Icon: Trophy },
-  { to: "/loadout", label: "Cards", Icon: PlusCircle },
-  { to: "/select-fighter", label: "Roster", Icon: Users },
-  { to: "/market", label: "Market", Icon: Store },
+  { to: "/create-match", label: "Fight", Icon: Swords, active: false },
+  { to: "/leaderboard", label: "Leaderboard", Icon: Trophy, active: false },
+  { to: "/loadout", label: "Cards", Icon: PlusCircle, active: false },
+  { to: "/select-fighter", label: "Roster", Icon: Users, active: false },
+  { to: "/market", label: "Market", Icon: Store, active: false },
 ] as const;
 
 const STATIONS = [
@@ -147,7 +131,8 @@ function Landing() {
   const { player } = usePlayer();
   const { config: season, status } = useSeason();
   const [fact, setFact] = useState(BASE_FACT_PLACEHOLDER);
-  const [featured, setFeatured] = useState(() => FEATURED.findIndex((f) => f.id === "noxar"));
+  const [featured, setFeatured] = useState(0);
+  const [muted, setLocalMuted] = useState(false);
 
   useEffect(() => {
     setFact(randomFact());
@@ -155,13 +140,22 @@ function Landing() {
     return () => clearInterval(t);
   }, []);
 
+  // Roster spotlight: every fighter takes the stage in turn, stats included.
   useEffect(() => {
-    const t = setInterval(() => setFeatured((i) => (i + 1) % FEATURED.length), 9000);
+    const t = setInterval(() => setFeatured((i) => (i + 1) % CHARACTERS.length), ROSTER_ROTATE_MS);
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    setLocalMuted(hydrateMute());
+    const unsub = subscribeMute(setLocalMuted);
+    return () => {
+      unsub();
+    };
+  }, []);
+
   const pass = passIsActive(player);
-  const hero = CHARACTERS.find((fighter) => fighter.id === player.fighterId) ?? CHARACTERS[0]!;
+  const hero = CHARACTERS[featured] ?? CHARACTERS[0]!;
   const heroArt = hero.fullArt || hero.standingArt || hero.portrait || "";
   const heroAlt = `${hero.name} fighter artwork`;
 
@@ -225,6 +219,25 @@ function Landing() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label={muted ? "Play theme song" : "Mute theme song"}
+            title={muted ? "Play theme song" : "Mute theme song"}
+            onClick={() => {
+              const next = !isMuted();
+              setMuted(next);
+              if (!next) {
+                sfx.tap();
+                music.start();
+              }
+            }}
+            className="flex items-center gap-2 rounded-full border border-fuchsia-400/50 bg-fuchsia-500/10 px-3 py-2 text-fuchsia-200 shadow-[0_0_18px_rgba(192,114,255,0.2)]"
+          >
+            {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+            <span className="font-display text-[10px] uppercase tracking-[0.18em]">
+              {muted ? "Muted" : "Theme"}
+            </span>
+          </button>
           <div className="flex items-center gap-2 rounded-full border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 text-cyan-200 shadow-[0_0_18px_rgba(45,212,191,0.2)]">
             <span className="font-display text-[11px] uppercase tracking-[0.18em]">FACTS</span>
             <span className="font-display text-lg font-bold">{Math.max(0, Math.floor(player.fp)).toLocaleString()}</span>
@@ -296,6 +309,23 @@ function Landing() {
                 </div>
               ))}
             </div>
+
+            <div className="mt-5 max-w-[500px] overflow-hidden rounded-[26px] border border-fuchsia-400/40 bg-[rgba(10,12,18,0.6)] p-3 shadow-[0_0_26px_rgba(192,114,255,0.25)]">
+              <div className="flex items-center justify-between">
+                <span className="font-display text-[10px] uppercase tracking-[0.2em] text-fuchsia-200">
+                  The Junkie Squad
+                </span>
+                <span className="text-[9px] uppercase tracking-[0.2em] text-white/45">Season 2</span>
+              </div>
+              <img
+                src={squadJunkiesAsset}
+                alt="The Hood Junkies squad of FarAction fighters wreathed in purple flame"
+                loading="eager"
+                decoding="async"
+                className="mt-2 h-[150px] w-full object-contain drop-shadow-[0_16px_50px_rgba(192,114,255,0.45)]"
+              />
+            </div>
+
           </div>
 
           <div className="absolute inset-x-[18%] bottom-0 top-[18px] flex items-end justify-center">

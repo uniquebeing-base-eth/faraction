@@ -319,7 +319,7 @@ function Loadout() {
                     {activeCard.type}
                   </span>
                   <span className="rounded-full border border-pink-400/60 bg-pink-500/10 px-2 py-1 text-pink-300">
-                    {activeCard.rarity}
+                    {activeCard.rarity ?? (activeCard.isPremium ? "Premium" : "Core")}
                   </span>
                 </div>
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type * as ThreeNS from "three";
 
 interface SeasonIntroSceneProps {
   className?: string;
@@ -93,7 +94,7 @@ export function SeasonIntroScene({
       orbit.add(ring);
 
       const palette = ["#5fd6ff", "#7fdc8f", "#ff4fa3", "#b98dff", "#ffd166"];
-      const cards: Array<{ mesh: THREE.Mesh; phase: number; baseY: number; drift: number }> = [];
+      const cards: Array<{ mesh: ThreeNS.Mesh; phase: number; baseY: number; drift: number }> = [];
 
       for (let i = 0; i < palette.length; i += 1) {
         const angle = (i / palette.length) * Math.PI * 2;

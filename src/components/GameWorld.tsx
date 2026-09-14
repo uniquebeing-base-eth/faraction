@@ -1,6 +1,6 @@
 import arenaPointer from "@/assets/img/arena.jpg.asset.json";
 import { cdnAsset } from "@/lib/assets";
-const arena = cdnAsset(arenaPointer.url);
+const arena = cdnAsset(arenaPointer);
 
 /**
  * Ambient arena world: depth-layered backdrop used behind every screen so the

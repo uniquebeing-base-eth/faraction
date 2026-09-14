@@ -1,33 +1,33 @@
 // FarAction — card & fighter definitions.
 // Mechanics preserved from the original engine; content rebranded to Base.
 import { cdnAsset } from "@/lib/assets";
-import kairaAssetPointer from "@/assets/img/fighter-kaira-v2.webp.asset.json";
-const kairaAsset = cdnAsset(kairaAssetPointer.url);
-import kenjiAssetPointer from "@/assets/img/fighter-kenji-v2.webp.asset.json";
-const kenjiAsset = cdnAsset(kenjiAssetPointer.url);
-import rivenAssetPointer from "@/assets/img/fighter-riven-v2.webp.asset.json";
-const rivenAsset = cdnAsset(rivenAssetPointer.url);
-import zaneAssetPointer from "@/assets/img/fighter-zane-v2.webp.asset.json";
-const zaneAsset = cdnAsset(zaneAssetPointer.url);
-import elaraAssetPointer from "@/assets/img/fighter-elara-v2.webp.asset.json";
-const elaraAsset = cdnAsset(elaraAssetPointer.url);
-import cinderAssetPointer from "@/assets/img/fighter-cinder.png.asset.json";
-const cinderAsset = cdnAsset(cinderAssetPointer.url);
-import goblynAssetPointer from "@/assets/img/fighter-goblyn.png.asset.json";
-const goblynAsset = cdnAsset(goblynAssetPointer.url);
-import noxarAssetPointer from "@/assets/img/fighter-noxar.png.asset.json";
-const noxarAsset = cdnAsset(noxarAssetPointer.url);
-import azelAssetPointer from "@/assets/img/fighter-azel.png.asset.json";
-const azelAsset = cdnAsset(azelAssetPointer.url);
-import pipAssetPointer from "@/assets/img/fighter-pip.png.asset.json";
-const pipAsset = cdnAsset(pipAssetPointer.url);
+import kairaAssetPointer from "@/assets/img/fighter-kaira-v3.png.asset.json";
+const kairaAsset = cdnAsset(kairaAssetPointer);
+import kenjiAssetPointer from "@/assets/img/fighter-kenji-v3.webp.asset.json";
+const kenjiAsset = cdnAsset(kenjiAssetPointer);
+import rivenAssetPointer from "@/assets/img/fighter-riven-v3.webp.asset.json";
+const rivenAsset = cdnAsset(rivenAssetPointer);
+import zaneAssetPointer from "@/assets/img/fighter-zane-v3.webp.asset.json";
+const zaneAsset = cdnAsset(zaneAssetPointer);
+import elaraAssetPointer from "@/assets/img/fighter-elara-v3.webp.asset.json";
+const elaraAsset = cdnAsset(elaraAssetPointer);
+import cinderAssetPointer from "@/assets/img/fighter-cinder-v3.webp.asset.json";
+const cinderAsset = cdnAsset(cinderAssetPointer);
+import goblynAssetPointer from "@/assets/img/fighter-goblyn-v3.png.asset.json";
+const goblynAsset = cdnAsset(goblynAssetPointer);
+import noxarAssetPointer from "@/assets/img/fighter-noxar-v3.png.asset.json";
+const noxarAsset = cdnAsset(noxarAssetPointer);
+import azelAssetPointer from "@/assets/img/fighter-azel-v3.webp.asset.json";
+const azelAsset = cdnAsset(azelAssetPointer);
+import pipAssetPointer from "@/assets/img/fighter-pip-v3.png.asset.json";
+const pipAsset = cdnAsset(pipAssetPointer);
 
 import strikeAssetPointer from "@/assets/img/card-strike.jpg.asset.json";
-const strikeAsset = cdnAsset(strikeAssetPointer.url);
+const strikeAsset = cdnAsset(strikeAssetPointer);
 import defenseAssetPointer from "@/assets/img/card-defense.jpg.asset.json";
-const defenseAsset = cdnAsset(defenseAssetPointer.url);
+const defenseAsset = cdnAsset(defenseAssetPointer);
 import controlAssetPointer from "@/assets/img/card-control.jpg.asset.json";
-const controlAsset = cdnAsset(controlAssetPointer.url);
+const controlAsset = cdnAsset(controlAssetPointer);
 
 const kairaArt = kairaAsset;
 const kenjiArt = kenjiAsset;
@@ -60,6 +60,7 @@ export interface Card {
   image: string;
   isWild?: boolean;
   isPremium?: boolean;
+  rarity?: string;
   price?: number;
 }
 

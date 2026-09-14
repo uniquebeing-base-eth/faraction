@@ -3,6 +3,9 @@
  * audio files. All cues are procedural and respect a persisted mute flag.
  */
 
+import { cdnAsset } from "@/lib/assets";
+import themePointer from "@/assets/audio-rise-of-junkies.mp3.asset.json";
+
 const MUTE_KEY = "faraction:muted";
 
 let ctx: AudioContext | null = null;
@@ -52,105 +55,40 @@ export function setMuted(next: boolean) {
   listeners.forEach((l) => l(next));
 }
 
-let musicTimer: number | null = null;
-let musicGain: GainNode | null = null;
+let themeAudio: HTMLAudioElement | null = null;
 let musicStarted = false;
 
-function playDrone({
-  ac,
-  freq,
-  gain,
-  type = "triangle",
-  startAt,
-  dur = 0.6,
-  out = ac.destination,
-}: {
-  ac: AudioContext;
-  freq: number;
-  gain: number;
-  type?: OscillatorType;
-  startAt: number;
-  dur?: number;
-  out?: AudioNode;
-}) {
-  const osc = ac.createOscillator();
-  const amp = ac.createGain();
-  const filter = ac.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 1200;
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, startAt);
-  amp.gain.setValueAtTime(0.0001, startAt);
-  amp.gain.exponentialRampToValueAtTime(gain, startAt + 0.08);
-  amp.gain.exponentialRampToValueAtTime(0.0001, startAt + dur);
-  osc.connect(filter).connect(amp).connect(out);
-  osc.start(startAt);
-  osc.stop(startAt + dur + 0.06);
-}
+/**
+ * Season theme song. Served from the public CDN so it plays on any host
+ * (Lovable preview, published app or the Cloudflare deployment).
+ */
+const THEME_SRC = cdnAsset(themePointer);
 
-function pulseKick({ ac, startAt, out = ac.destination }: { ac: AudioContext; startAt: number; out?: AudioNode }) {
-  const osc = ac.createOscillator();
-  const amp = ac.createGain();
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(48, startAt);
-  osc.frequency.exponentialRampToValueAtTime(12, startAt + 0.18);
-  amp.gain.setValueAtTime(0.0001, startAt);
-  amp.gain.exponentialRampToValueAtTime(0.16, startAt + 0.02);
-  amp.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.2);
-  osc.connect(amp).connect(out);
-  osc.start(startAt);
-  osc.stop(startAt + 0.25);
+export function musicIsPlaying(): boolean {
+  return musicStarted;
 }
 
 function startMusic() {
-  const ac = ensureCtx();
-  if (!ac || muted || musicStarted) return;
-
+  if (typeof window === "undefined" || muted) return;
+  if (musicStarted && themeAudio && !themeAudio.paused) return;
+  if (!themeAudio) {
+    themeAudio = new Audio(THEME_SRC);
+    themeAudio.loop = true;
+    themeAudio.preload = "auto";
+    themeAudio.crossOrigin = "anonymous";
+    themeAudio.volume = 0.45;
+  }
   musicStarted = true;
-  musicGain = ac.createGain();
-  musicGain.gain.value = 0.0001;
-  musicGain.connect(ac.destination);
-  musicGain.gain.exponentialRampToValueAtTime(0.07, ac.currentTime + 0.5);
-
-  const progression = [110, 146.83, 123.47, 164.81, 138.59, 196, 146.83, 174.61];
-  const lead = [392, 440, 523.25, 587.33, 659.25, 587.33, 523.25, 440];
-  let step = 0;
-
-  const tick = () => {
-    if (muted) {
-      stopMusic();
-      return;
-    }
-    const t = ac.currentTime + 0.05;
-    const bass = progression[step % progression.length];
-    const top = lead[step % lead.length];
-    pulseKick({ ac, startAt: t, out: musicGain ?? ac.destination });
-    playDrone({ ac, freq: bass, gain: 0.05, type: "triangle", startAt: t, dur: 0.32, out: musicGain ?? ac.destination });
-    playDrone({ ac, freq: top, gain: 0.025, type: "sawtooth", startAt: t + 0.08, dur: 0.28, out: musicGain ?? ac.destination });
-    if (step % 2 === 0) {
-      playDrone({ ac, freq: bass * 2, gain: 0.014, type: "square", startAt: t + 0.12, dur: 0.2, out: musicGain ?? ac.destination });
-    }
-    step += 1;
-  };
-
-  tick();
-  musicTimer = window.setInterval(tick, 420);
+  void themeAudio.play().catch(() => {
+    // Autoplay blocked until the first user gesture; the root listener retries.
+    musicStarted = false;
+  });
 }
 
 export function stopMusic() {
-  if (musicTimer !== null) {
-    window.clearInterval(musicTimer);
-    musicTimer = null;
-  }
-  if (musicGain) {
-    const ac = ensureCtx();
-    if (ac) {
-      musicGain.gain.cancelScheduledValues(ac.currentTime);
-      musicGain.gain.setValueAtTime(musicGain.gain.value, ac.currentTime);
-      musicGain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.15);
-    }
-    musicGain.disconnect();
-    musicGain = null;
+  if (themeAudio) {
+    themeAudio.pause();
+    themeAudio.currentTime = 0;
   }
   musicStarted = false;
 }
