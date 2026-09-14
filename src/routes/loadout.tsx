@@ -158,6 +158,7 @@ function Loadout() {
     (sum, id) => sum + (CARDS.find((c) => c.id === id)?.energyCost ?? 0),
     0,
   );
+  const remainingEnergy = Math.max(energyPool - used, 0);
   const archetypes = getStarterArchetypes(fighter.id);
 
   const add = (id: string) => {
@@ -185,7 +186,25 @@ function Loadout() {
             </p>
           </div>
 
-          <div className="fa-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
+          <div className="mb-3 rounded-xl border border-cyan-400/30 bg-cyan-500/5 px-3 py-2">
+            <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.18em] text-slate-200">
+              <span>Energy</span>
+              <span className="font-display text-[11px] text-cyan-300">
+                {used}/{energyPool}
+              </span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-900/80">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-400 transition-all duration-200"
+                style={{ width: `${Math.min((used / Math.max(energyPool, 1)) * 100, 100)}%` }}
+              />
+            </div>
+            <p className="mt-1 text-[10px] text-slate-300">
+              {remainingEnergy} energy left for this fighter
+            </p>
+          </div>
+
+          <div className="fa-scroll flex min-h-0 max-h-[calc(100vh-390px)] flex-1 flex-col gap-5 overflow-y-auto pr-1">
             <div className="grid grid-cols-5 gap-3">
               {Array.from({ length: 5 }).map((_, i) => {
                 const id = sequence[i];
