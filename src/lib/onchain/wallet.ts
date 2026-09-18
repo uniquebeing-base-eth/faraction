@@ -124,7 +124,9 @@ export async function getWalletClient(): Promise<{
 }> {
   const provider = await loadProvider();
   if (!provider) {
-    throw new Error("Open FarAction inside Farcaster to use the connected wallet.");
+    throw new Error(
+      "No wallet found. Install MetaMask or Base/Coinbase Wallet, or open FarAction inside Farcaster.",
+    );
   }
   const accounts = (await provider.request({ method: "eth_requestAccounts" })) as Address[];
   const account = accounts[0];
