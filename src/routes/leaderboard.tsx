@@ -139,6 +139,43 @@ function Leaderboard() {
                 : `${status.parts.days}d ${status.parts.hours}h ${status.parts.minutes}m ${status.parts.seconds}s`}
             </p>
           </div>
+          <div className="panel space-y-2 border-fuchsia-500/40 p-3">
+            <p className="label-xs text-fuchsia-400">Reward eligibility · Season 2</p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              To be eligible for Season 2 rewards you must hold a{" "}
+              <span className="text-foreground">Hood Junkies NFT</span> in the wallet you play with.
+              A snapshot is taken on{" "}
+              <span className="text-foreground">
+                {new Date(status.snapshotAt).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>{" "}
+              — the day before the season ends. Holders in the{" "}
+              <span className="text-foreground">top 25 of the global leaderboard</span> at that
+              snapshot receive their share of the {season.rewardPool.toLocaleString()} $FACTS pool,
+              sent straight to their wallet.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={HOOD_JUNKIES_SITE}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fa-chip border-fuchsia-500/50 text-fuchsia-300"
+              >
+                hoodjunkies.world
+              </a>
+              <a
+                href={HOOD_JUNKIES_OPENSEA}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fa-chip border-fuchsia-500/50 text-fuchsia-300"
+              >
+                Mint on OpenSea
+              </a>
+            </div>
+          </div>
           {status.ended ? (
             <button
               type="button"

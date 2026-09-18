@@ -44,12 +44,35 @@ export const publicClient = createPublicClient({
 
 let cachedProvider: EIP1193Provider | null = null;
 
-async function loadProvider(): Promise<EIP1193Provider | null> {
-  if (typeof window === "undefined") return null;
-  if (cachedProvider) return cachedProvider;
+/** True when running inside a Farcaster client (mini app iframe/webview). */
+function inFarcasterFrame(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.parent !== window || Boolean((window as { ReactNativeWebView?: unknown }).ReactNativeWebView);
+  } catch {
+    return true;
+  }
+}
 
-  // The app intentionally uses the Farcaster mini-app wallet only.
-  // No browser-injected wallet path is supported here.
+/** Any EIP-1193 wallet injected by the browser (MetaMask, Base, Coinbase…). */
+function injectedProvider(): EIP1193Provider | null {
+  if (typeof window === "undefined") return null;
+  const eth = (window as unknown as { ethereum?: EIP1193Provider & { providers?: EIP1193Provider[] } })
+    .ethereum;
+  if (!eth) return null;
+  // Multiple wallets installed: prefer one that announces Base/Coinbase/MetaMask.
+  const list = eth.providers;
+  if (Array.isArray(list) && list.length) {
+    const flagged = list.find((p) => {
+      const f = p as unknown as Record<string, boolean | undefined>;
+      return f["isCoinbaseWallet"] || f["isBaseWallet"] || f["isMetaMask"];
+    });
+    return flagged ?? list[0] ?? null;
+  }
+  return eth;
+}
+
+async function farcasterProvider(): Promise<EIP1193Provider | null> {
   try {
     const url = "https://esm.sh/@farcaster/miniapp-sdk@0.3.0";
     const mod = (await import(/* @vite-ignore */ url)) as {
@@ -60,17 +83,39 @@ async function loadProvider(): Promise<EIP1193Provider | null> {
         };
       };
     };
-    const provider =
-      (await mod.sdk?.wallet?.getEthereumProvider?.()) ?? mod.sdk?.wallet?.ethProvider;
-    if (provider) {
-      cachedProvider = provider;
-      return provider;
-    }
+    return (await mod.sdk?.wallet?.getEthereumProvider?.()) ?? mod.sdk?.wallet?.ethProvider ?? null;
   } catch {
-    // Not in a Farcaster client.
+    return null;
+  }
+}
+
+/**
+ * Resolves a wallet provider. Inside Farcaster the mini-app wallet wins so the
+ * existing mini app flow is untouched; in a plain browser we fall back to any
+ * injected wallet (MetaMask, Base/Coinbase Wallet, Rabby, …).
+ */
+async function loadProvider(): Promise<EIP1193Provider | null> {
+  if (typeof window === "undefined") return null;
+  if (cachedProvider) return cachedProvider;
+
+  if (inFarcasterFrame()) {
+    const fc = await farcasterProvider();
+    if (fc) {
+      cachedProvider = fc;
+      return fc;
+    }
   }
 
-  return null;
+  const injected = injectedProvider();
+  if (injected) {
+    cachedProvider = injected;
+    return injected;
+  }
+
+  // Last resort: a Farcaster client that didn't look like a frame.
+  const fc = await farcasterProvider();
+  if (fc) cachedProvider = fc;
+  return cachedProvider;
 }
 
 export async function getWalletClient(): Promise<{
@@ -79,7 +124,9 @@ export async function getWalletClient(): Promise<{
 }> {
   const provider = await loadProvider();
   if (!provider) {
-    throw new Error("Open FarAction inside Farcaster to use the connected wallet.");
+    throw new Error(
+      "No wallet found. Install MetaMask or Base/Coinbase Wallet, or open FarAction inside Farcaster.",
+    );
   }
   const accounts = (await provider.request({ method: "eth_requestAccounts" })) as Address[];
   const account = accounts[0];
@@ -116,6 +163,17 @@ function broadcast(address: Address | null) {
   listeners.forEach((l) => l(address));
 }
 
+/** Mirrors wallet-side account switches / disconnects into app state. */
+let accountWatcherBound = false;
+function watchAccounts(provider: EIP1193Provider) {
+  if (accountWatcherBound) return;
+  accountWatcherBound = true;
+  const on = (provider as unknown as { on?: (e: string, cb: (a: string[]) => void) => void }).on;
+  on?.call(provider, "accountsChanged", (accounts: string[]) => {
+    broadcast((accounts[0] as Address | undefined) ?? null);
+  });
+}
+
 export function useWallet() {
   const [address, setAddress] = useState<Address | null>(currentAddress);
   const [connecting, setConnecting] = useState(false);
@@ -137,6 +195,7 @@ export function useWallet() {
     setError(null);
     try {
       const { account } = await getWalletClient();
+      if (cachedProvider) watchAccounts(cachedProvider);
       broadcast(account);
       return account;
     } catch (e) {
@@ -148,7 +207,13 @@ export function useWallet() {
     }
   }, []);
 
-  const disconnect = useCallback(() => broadcast(null), []);
+  const disconnect = useCallback(() => {
+    // Drop the cached provider so the next connect re-prompts the wallet.
+    cachedProvider = null;
+    accountWatcherBound = false;
+    setError(null);
+    broadcast(null);
+  }, []);
 
   return { address, connect, disconnect, connecting, error };
 }
