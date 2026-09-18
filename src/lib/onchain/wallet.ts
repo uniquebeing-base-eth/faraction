@@ -163,6 +163,17 @@ function broadcast(address: Address | null) {
   listeners.forEach((l) => l(address));
 }
 
+/** Mirrors wallet-side account switches / disconnects into app state. */
+let accountWatcherBound = false;
+function watchAccounts(provider: EIP1193Provider) {
+  if (accountWatcherBound) return;
+  accountWatcherBound = true;
+  const on = (provider as unknown as { on?: (e: string, cb: (a: string[]) => void) => void }).on;
+  on?.call(provider, "accountsChanged", (accounts: string[]) => {
+    broadcast((accounts[0] as Address | undefined) ?? null);
+  });
+}
+
 export function useWallet() {
   const [address, setAddress] = useState<Address | null>(currentAddress);
   const [connecting, setConnecting] = useState(false);
