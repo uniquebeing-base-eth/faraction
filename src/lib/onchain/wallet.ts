@@ -195,6 +195,7 @@ export function useWallet() {
     setError(null);
     try {
       const { account } = await getWalletClient();
+      if (cachedProvider) watchAccounts(cachedProvider);
       broadcast(account);
       return account;
     } catch (e) {
@@ -206,7 +207,13 @@ export function useWallet() {
     }
   }, []);
 
-  const disconnect = useCallback(() => broadcast(null), []);
+  const disconnect = useCallback(() => {
+    // Drop the cached provider so the next connect re-prompts the wallet.
+    cachedProvider = null;
+    accountWatcherBound = false;
+    setError(null);
+    broadcast(null);
+  }, []);
 
   return { address, connect, disconnect, connecting, error };
 }
