@@ -27,7 +27,7 @@ export const SEASON_1: SeasonConfig = {
   shortName: "Season 2 · The Rise of Junkies",
   // Launch anchor. The admin console can re-anchor or roll a new season.
   startedAt: Date.UTC(2026, 8, 5, 0, 0, 0),
-  durationDays: 20,
+  durationDays: 25,
   rewardPool: 100_000_000,
 };
 
