@@ -44,12 +44,35 @@ export const publicClient = createPublicClient({
 
 let cachedProvider: EIP1193Provider | null = null;
 
-async function loadProvider(): Promise<EIP1193Provider | null> {
-  if (typeof window === "undefined") return null;
-  if (cachedProvider) return cachedProvider;
+/** True when running inside a Farcaster client (mini app iframe/webview). */
+function inFarcasterFrame(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.parent !== window || Boolean((window as { ReactNativeWebView?: unknown }).ReactNativeWebView);
+  } catch {
+    return true;
+  }
+}
 
-  // The app intentionally uses the Farcaster mini-app wallet only.
-  // No browser-injected wallet path is supported here.
+/** Any EIP-1193 wallet injected by the browser (MetaMask, Base, Coinbase…). */
+function injectedProvider(): EIP1193Provider | null {
+  if (typeof window === "undefined") return null;
+  const eth = (window as unknown as { ethereum?: EIP1193Provider & { providers?: EIP1193Provider[] } })
+    .ethereum;
+  if (!eth) return null;
+  // Multiple wallets installed: prefer one that announces Base/Coinbase/MetaMask.
+  const list = eth.providers;
+  if (Array.isArray(list) && list.length) {
+    const flagged = list.find((p) => {
+      const f = p as unknown as Record<string, boolean | undefined>;
+      return f["isCoinbaseWallet"] || f["isBaseWallet"] || f["isMetaMask"];
+    });
+    return flagged ?? list[0] ?? null;
+  }
+  return eth;
+}
+
+async function farcasterProvider(): Promise<EIP1193Provider | null> {
   try {
     const url = "https://esm.sh/@farcaster/miniapp-sdk@0.3.0";
     const mod = (await import(/* @vite-ignore */ url)) as {
@@ -60,17 +83,39 @@ async function loadProvider(): Promise<EIP1193Provider | null> {
         };
       };
     };
-    const provider =
-      (await mod.sdk?.wallet?.getEthereumProvider?.()) ?? mod.sdk?.wallet?.ethProvider;
-    if (provider) {
-      cachedProvider = provider;
-      return provider;
-    }
+    return (await mod.sdk?.wallet?.getEthereumProvider?.()) ?? mod.sdk?.wallet?.ethProvider ?? null;
   } catch {
-    // Not in a Farcaster client.
+    return null;
+  }
+}
+
+/**
+ * Resolves a wallet provider. Inside Farcaster the mini-app wallet wins so the
+ * existing mini app flow is untouched; in a plain browser we fall back to any
+ * injected wallet (MetaMask, Base/Coinbase Wallet, Rabby, …).
+ */
+async function loadProvider(): Promise<EIP1193Provider | null> {
+  if (typeof window === "undefined") return null;
+  if (cachedProvider) return cachedProvider;
+
+  if (inFarcasterFrame()) {
+    const fc = await farcasterProvider();
+    if (fc) {
+      cachedProvider = fc;
+      return fc;
+    }
   }
 
-  return null;
+  const injected = injectedProvider();
+  if (injected) {
+    cachedProvider = injected;
+    return injected;
+  }
+
+  // Last resort: a Farcaster client that didn't look like a frame.
+  const fc = await farcasterProvider();
+  if (fc) cachedProvider = fc;
+  return cachedProvider;
 }
 
 export async function getWalletClient(): Promise<{
