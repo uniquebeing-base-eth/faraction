@@ -44,14 +44,21 @@ export const publicClient = createPublicClient({
 
 let cachedProvider: EIP1193Provider | null = null;
 
-/** True when running inside a Farcaster client (mini app iframe/webview). */
-function inFarcasterFrame(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.parent !== window || Boolean((window as { ReactNativeWebView?: unknown }).ReactNativeWebView);
-  } catch {
-    return true;
-  }
+/** Never let a hanging provider call freeze the UI. */
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
 }
 
 /** Any EIP-1193 wallet injected by the browser (MetaMask, Base, Coinbase…). */
