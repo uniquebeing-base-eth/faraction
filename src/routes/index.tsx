@@ -146,6 +146,18 @@ function Landing() {
     return () => clearInterval(t);
   }, []);
 
+  // Warm every fighter picture once so the rotation never flashes an empty
+  // frame while the next image downloads.
+  useEffect(() => {
+    for (const c of CHARACTERS) {
+      const src = c.fullArt || c.standingArt || c.portrait;
+      if (!src) continue;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    }
+  }, []);
+
   useEffect(() => {
     setLocalMuted(hydrateMute());
     const unsub = subscribeMute(setLocalMuted);
