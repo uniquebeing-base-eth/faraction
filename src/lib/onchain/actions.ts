@@ -165,16 +165,29 @@ async function ensureAllowance(token: Address, spender: Address, amount: bigint,
     }
   }
 
-  const updated = (await publicClient.readContract({
-    address: token,
-    abi: ERC20_ABI,
-    functionName: "allowance",
-    args: [owner, spender],
-  })) as bigint;
-  if (updated < amount) throw new Error("The token approval did not go through — try again.");
+  // The allowance re-read runs against the same public RPC that may be rate
+  // limited; only a confident "still too low" answer blocks the purchase.
+  try {
+    const updated = (await publicClient.readContract({
+      address: token,
+      abi: ERC20_ABI,
+      functionName: "allowance",
+      args: [owner, spender],
+    })) as bigint;
+    if (updated < amount) throw new Error("The token approval did not go through — try again.");
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("did not go through")) throw error;
+    console.warn("Could not re-read the allowance; continuing.", error);
+  }
 }
 
-/** Simulate, send and confirm a contract write; surfaces revert reasons early. */
+/**
+ * Simulate, send and confirm a contract write.
+ *
+ * The simulation is best-effort: it gives clean revert reasons when the RPC is
+ * healthy, but an RPC outage must not be reported to the player as a contract
+ * revert — in that case we send through the wallet, which estimates itself.
+ */
 async function sendWrite(params: {
   address: Address;
   abi: readonly unknown[];
@@ -185,16 +198,44 @@ async function sendWrite(params: {
   wait?: boolean;
 }) {
   const { client } = await getWalletClient();
-  const { request } = await publicClient.simulateContract({
-    address: params.address,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    abi: params.abi as any,
-    functionName: params.functionName,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    args: params.args as any,
-    account: params.account,
-  });
-  const hash = await client.writeContract({ ...request, chain: client.chain });
+  let request: Record<string, unknown> | null = null;
+  try {
+    const simulated = await publicClient.simulateContract({
+      address: params.address,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      abi: params.abi as any,
+      functionName: params.functionName,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      args: params.args as any,
+      account: params.account,
+    });
+    request = simulated.request as unknown as Record<string, unknown>;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    // A genuine revert reason is worth surfacing; RPC noise is not.
+    const rpcNoise =
+      /unknown provider rpc error|rate limit|timeout|timed out|fetch failed|failed to fetch|503|502|429|internal error/i.test(
+        message,
+      );
+    if (!rpcNoise) throw error;
+    console.warn(`Simulation unavailable for ${params.functionName}; sending directly.`, error);
+  }
+
+  const hash = request
+    ? await client.writeContract({
+        ...(request as never),
+        chain: client.chain,
+      })
+    : await client.writeContract({
+        address: params.address,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        abi: params.abi as any,
+        functionName: params.functionName,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        args: params.args as any,
+        account: params.account,
+        chain: client.chain,
+      });
   if (params.wait !== false) await waitForReceiptSoft(hash);
   return hash;
 }
