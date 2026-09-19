@@ -187,7 +187,7 @@ function Market() {
             <div className="relative overflow-hidden rounded-[24px] border border-fuchsia-400/30 bg-[radial-gradient(circle_at_top,rgba(192,114,255,0.22),transparent_38%),linear-gradient(135deg,#120b1d,#0d1019_50%,#10131d)] p-3">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(34,211,238,0.18),transparent_20%),radial-gradient(circle_at_15%_70%,rgba(168,85,247,0.20),transparent_30%)]" />
               <div className="absolute bottom-0 right-0 h-36 w-36 rounded-full bg-fuchsia-500/20 blur-3xl" />
-              <img
+              <img decoding="async"
                 src={activeFeature.image}
                 alt={activeFeature.name}
                 className="relative z-10 ml-auto h-28 w-28 object-contain drop-shadow-[0_0_30px_rgba(192,114,255,0.4)]"
@@ -323,7 +323,7 @@ function Market() {
                 const pending = buying === item.id && buyEnergy.isPending;
                 return (
                   <div key={item.id} className="w-[150px] shrink-0 snap-start space-y-1.5 rounded-[20px] border border-white/10 bg-white/3 p-2.5">
-                    <img
+                    <img decoding="async"
                       src={item.image}
                       alt={`${item.name} — +${item.energy} energy`}
                       loading="lazy"

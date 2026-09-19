@@ -28,7 +28,7 @@ export function CardTile({
         selected ? "border-fuchsia-400/70 bg-fuchsia-500/10 shadow-[0_0_30px_rgba(168,85,247,0.18)]" : "border-white/10 bg-slate-950/50"
       } ${disabled ? "opacity-40" : "hover:-translate-y-0.5"} ${compact ? "h-24" : "h-40"}`}
     >
-      <img
+      <img decoding="async"
         src={card.image}
         alt=""
         loading="lazy"
