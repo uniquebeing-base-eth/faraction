@@ -84,7 +84,7 @@ export function ArenaPicker({ arena, onSelect }: Props) {
             </div>
           </div>
           <div className="absolute left-1/2 top-[48%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm" />
-          <img
+          <img decoding="async"
             src={emblem}
             alt=""
             width={1024}

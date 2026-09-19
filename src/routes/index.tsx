@@ -243,7 +243,7 @@ function Landing() {
             <span className="font-display text-lg font-bold">{Math.max(0, Math.floor(player.fp)).toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-2 rounded-full border border-violet-400/50 bg-violet-500/10 px-3 py-2 text-violet-200">
-            <img src={hero.portrait || heroArt} alt="" className="h-8 w-8 rounded-full border border-white/20 object-cover" />
+            <img decoding="async" src={hero.portrait || heroArt} alt="" className="h-8 w-8 rounded-full border border-white/20 object-cover" />
             <span className="font-display text-[11px] uppercase tracking-[0.18em]">{displayHandle(player)}</span>
           </div>
         </div>
