@@ -223,7 +223,7 @@ function Loadout() {
                   >
                     {card ? (
                       <>
-                        <img
+                        <img decoding="async"
                           src={card.image}
                           alt={card.name}
                           className="absolute inset-0 h-full w-full object-cover opacity-80"
@@ -300,7 +300,7 @@ function Loadout() {
             <>
               <div className="relative overflow-hidden rounded-2xl border border-cyan-400/70 bg-[#060d1d]/90">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.2),transparent_35%),radial-gradient(circle_at_bottom,rgba(217,70,239,0.25),transparent_38%)]" />
-                <img
+                <img decoding="async"
                   src={activeCard.image}
                   alt={activeCard.name}
                   className="relative z-10 h-[260px] w-full object-cover object-top"

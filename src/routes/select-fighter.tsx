@@ -77,7 +77,7 @@ function SelectFighter() {
                         background: `radial-gradient(circle at 50% 20%, ${fighter.color}66, transparent 48%), linear-gradient(180deg, rgba(16,18,26,0.2), rgba(8,9,14,0.8))`,
                       }}
                     />
-                    <img
+                    <img decoding="async"
                       src={fighter.fullArt}
                       alt={fighter.name}
                       loading="lazy"

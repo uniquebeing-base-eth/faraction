@@ -45,7 +45,7 @@ function Profile() {
       aside={
         <div className="space-y-2">
           <div className="panel flex items-center gap-3 p-3">
-            <img
+            <img decoding="async"
               src={fighter.portrait}
               alt={fighter.name}
               loading="lazy"

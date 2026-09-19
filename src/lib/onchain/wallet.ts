@@ -26,8 +26,11 @@ import { CHAIN, CHAIN_ID } from "./contracts";
  */
 const RPC_URLS = [
   import.meta.env["VITE_BASE_RPC_URL"] as string | undefined,
-  "https://base.llamarpc.com",
   "https://mainnet.base.org",
+  "https://base-rpc.publicnode.com",
+  "https://base.llamarpc.com",
+  "https://base.drpc.org",
+  "https://1rpc.io/base",
 ].filter(Boolean) as string[];
 
 /** Receipt polling interval (ms). viem's 4s default burns RPC quota fast. */
@@ -44,14 +47,21 @@ export const publicClient = createPublicClient({
 
 let cachedProvider: EIP1193Provider | null = null;
 
-/** True when running inside a Farcaster client (mini app iframe/webview). */
-function inFarcasterFrame(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.parent !== window || Boolean((window as { ReactNativeWebView?: unknown }).ReactNativeWebView);
-  } catch {
-    return true;
-  }
+/** Never let a hanging provider call freeze the UI. */
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
 }
 
 /** Any EIP-1193 wallet injected by the browser (MetaMask, Base, Coinbase…). */
@@ -72,33 +82,87 @@ function injectedProvider(): EIP1193Provider | null {
   return eth;
 }
 
+type MiniAppSdk = {
+  isInMiniApp?: () => Promise<boolean>;
+  context?: Promise<unknown>;
+  wallet?: {
+    getEthereumProvider?: () => Promise<EIP1193Provider | undefined>;
+    ethProvider?: EIP1193Provider;
+  };
+};
+
+let sdkPromise: Promise<MiniAppSdk | null> | null = null;
+
+async function loadMiniAppSdk(): Promise<MiniAppSdk | null> {
+  if (typeof window === "undefined") return null;
+  sdkPromise ??= (async () => {
+    try {
+      const url = "https://esm.sh/@farcaster/miniapp-sdk@0.3.0";
+      const mod = (await withTimeout(
+        import(/* @vite-ignore */ url),
+        6_000,
+        "Farcaster SDK load timed out",
+      )) as { sdk?: MiniAppSdk };
+      return mod.sdk ?? null;
+    } catch {
+      return null;
+    }
+  })();
+  return sdkPromise;
+}
+
+/**
+ * Real mini-app detection. The old heuristic ("are we in an iframe?") was true
+ * for any embed — including a normal browser preview — so the Farcaster wallet
+ * was asked for accounts with no Farcaster host to answer, and Connect hung.
+ */
+async function isMiniApp(): Promise<boolean> {
+  const sdk = await loadMiniAppSdk();
+  if (!sdk) return false;
+  try {
+    if (typeof sdk.isInMiniApp === "function") {
+      return await withTimeout(sdk.isInMiniApp(), 2_500, "mini app check timed out");
+    }
+    const ctx = await withTimeout(
+      Promise.resolve(sdk.context),
+      2_500,
+      "mini app check timed out",
+    );
+    return Boolean(ctx);
+  } catch {
+    return false;
+  }
+}
+
 async function farcasterProvider(): Promise<EIP1193Provider | null> {
   try {
-    const url = "https://esm.sh/@farcaster/miniapp-sdk@0.3.0";
-    const mod = (await import(/* @vite-ignore */ url)) as {
-      sdk?: {
-        wallet?: {
-          getEthereumProvider?: () => Promise<EIP1193Provider | undefined>;
-          ethProvider?: EIP1193Provider;
-        };
-      };
-    };
-    return (await mod.sdk?.wallet?.getEthereumProvider?.()) ?? mod.sdk?.wallet?.ethProvider ?? null;
+    const sdk = await loadMiniAppSdk();
+    if (!sdk?.wallet) return null;
+    const provider = sdk.wallet.getEthereumProvider
+      ? await withTimeout(
+          sdk.wallet.getEthereumProvider(),
+          5_000,
+          "Farcaster wallet did not respond",
+        )
+      : undefined;
+    return provider ?? sdk.wallet.ethProvider ?? null;
   } catch {
     return null;
   }
 }
 
 /**
- * Resolves a wallet provider. Inside Farcaster the mini-app wallet wins so the
- * existing mini app flow is untouched; in a plain browser we fall back to any
+ * Resolves a wallet provider. Inside a real Farcaster client the mini-app
+ * wallet wins so that flow is untouched; everywhere else we use the browser's
  * injected wallet (MetaMask, Base/Coinbase Wallet, Rabby, …).
  */
 async function loadProvider(): Promise<EIP1193Provider | null> {
   if (typeof window === "undefined") return null;
   if (cachedProvider) return cachedProvider;
 
-  if (inFarcasterFrame()) {
+  const injected = injectedProvider();
+
+  if (await isMiniApp()) {
     const fc = await farcasterProvider();
     if (fc) {
       cachedProvider = fc;
@@ -106,13 +170,11 @@ async function loadProvider(): Promise<EIP1193Provider | null> {
     }
   }
 
-  const injected = injectedProvider();
   if (injected) {
     cachedProvider = injected;
     return injected;
   }
 
-  // Last resort: a Farcaster client that didn't look like a frame.
   const fc = await farcasterProvider();
   if (fc) cachedProvider = fc;
   return cachedProvider;
@@ -128,19 +190,45 @@ export async function getWalletClient(): Promise<{
       "No wallet found. Install MetaMask or Base/Coinbase Wallet, or open FarAction inside Farcaster.",
     );
   }
-  const accounts = (await provider.request({ method: "eth_requestAccounts" })) as Address[];
+  const accounts = (await withTimeout(
+    provider.request({ method: "eth_requestAccounts" }) as Promise<Address[]>,
+    120_000,
+    "Your wallet did not respond. Open the wallet app or extension and approve the connection, then try again.",
+  )) as Address[];
   const account = accounts[0];
   if (!account) throw new Error("Wallet connection rejected.");
 
   const chainId = (await provider.request({ method: "eth_chainId" })) as string;
   if (parseInt(chainId, 16) !== CHAIN_ID) {
+    const hexChain = `0x${CHAIN_ID.toString(16)}`;
     try {
       await provider.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: `0x${CHAIN_ID.toString(16)}` }],
+        params: [{ chainId: hexChain }],
       });
-    } catch {
-      throw new Error("Switch your wallet to the Base network to continue.");
+    } catch (error) {
+      // Wallet doesn't know Base yet → offer to add it, then retry.
+      const code = (error as { code?: number } | null)?.code;
+      if (code === 4902 || code === -32603) {
+        try {
+          await provider.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: hexChain,
+                chainName: "Base",
+                nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+                rpcUrls: ["https://mainnet.base.org"],
+                blockExplorerUrls: ["https://basescan.org"],
+              },
+            ],
+          });
+        } catch {
+          throw new Error("Switch your wallet to the Base network to continue.");
+        }
+      } else {
+        throw new Error("Switch your wallet to the Base network to continue.");
+      }
     }
   }
 
