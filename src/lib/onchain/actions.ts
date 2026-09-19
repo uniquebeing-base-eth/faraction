@@ -198,7 +198,8 @@ async function sendWrite(params: {
   wait?: boolean;
 }) {
   const { client } = await getWalletClient();
-  let request: Record<string, unknown> | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let request: any = null;
   try {
     const simulated = await publicClient.simulateContract({
       address: params.address,
