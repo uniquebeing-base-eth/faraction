@@ -26,8 +26,11 @@ import { CHAIN, CHAIN_ID } from "./contracts";
  */
 const RPC_URLS = [
   import.meta.env["VITE_BASE_RPC_URL"] as string | undefined,
-  "https://base.llamarpc.com",
   "https://mainnet.base.org",
+  "https://base-rpc.publicnode.com",
+  "https://base.llamarpc.com",
+  "https://base.drpc.org",
+  "https://1rpc.io/base",
 ].filter(Boolean) as string[];
 
 /** Receipt polling interval (ms). viem's 4s default burns RPC quota fast. */
