@@ -222,21 +222,18 @@ async function sendWrite(params: {
     console.warn(`Simulation unavailable for ${params.functionName}; sending directly.`, error);
   }
 
-  const hash = request
-    ? await client.writeContract({
-        ...(request as never),
-        chain: client.chain,
-      })
-    : await client.writeContract({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const writeArgs: any = request
+    ? { ...request, chain: client.chain }
+    : {
         address: params.address,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        abi: params.abi as any,
+        abi: params.abi,
         functionName: params.functionName,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        args: params.args as any,
+        args: params.args,
         account: params.account,
         chain: client.chain,
-      });
+      };
+  const hash = await client.writeContract(writeArgs);
   if (params.wait !== false) await waitForReceiptSoft(hash);
   return hash;
 }
