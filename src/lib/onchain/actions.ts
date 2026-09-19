@@ -136,17 +136,20 @@ async function ensureAllowance(token: Address, spender: Address, amount: bigint,
 
   const { client } = await getWalletClient();
 
+  // No simulation here: a flaky public RPC answers with "Unknown provider RPC
+  // error", which viem reports as an `approve` revert and kills a perfectly
+  // valid purchase. The wallet does its own estimation, and the allowance
+  // re-read below is the real check.
   const approve = async (value: bigint) => {
-    const { request } = await publicClient.simulateContract({
+    const hash = await client.writeContract({
       address: token,
       abi: ERC20_ABI,
       functionName: "approve",
       args: [spender, value],
       account: owner,
+      chain: client.chain,
     });
-    const hash = await client.writeContract({ ...request, chain: client.chain });
-    // Soft wait: a rate-limited poll is not a failed approval. The allowance
-    // re-read below is the real check.
+    // Soft wait: a rate-limited poll is not a failed approval.
     await waitForReceiptSoft(hash, "approval transaction");
   };
 
